@@ -79,7 +79,7 @@ save.figures <- T # whether to save figure pdfs
 #results.version <- "v230113" # updated the SLA from W22
 #results.version <- "v230418" # updated leaf size and whatnot from W22
 results.version <- "v230505" # full new version after code update
-results.dir <- paste0("figures/Results_",results.version)
+results.dir <- paste0("Results_",results.version)
 if(save.figures == T) { dir.create(results.dir)}
 
 
@@ -120,7 +120,7 @@ qudo$year <- as.numeric(year)
 
 ## import hopland tree sizes
 # from pre-harvest survey, (2017?)
-hoptrees <- read.csv("Hop_trees_20180730.csv")
+hoptrees <- read.csv("Data/Hop_trees_20180730.csv")
 hoptrees$bioest <- (hoptrees$diam_50cm/2)^2 * pi * hoptrees$height  # currently as a cylinder 
 hoptrees$ind <- factor(hoptrees$sub)
 levels(hoptrees$ind) <- list(a = "1", b="2", c="3")
@@ -1571,8 +1571,9 @@ mypallight <- paste0(brewer.pal(n=8, "Dark2"), "55")
 
 
 # turn sampling locations into spatial data for plotting
-latlon <- CRS("+proj=longlat +datum=WGS84")
-sampledlocs <- SpatialPoints(coords = data.frame(popclim$Lon.dd, popclim$Lat.dd), proj4string = latlon)
+
+latlon <- sp::CRS("+proj=longlat +datum=WGS84")
+sampledlocs <- sp::SpatialPoints(coords = data.frame(popclim$Lon.dd, popclim$Lat.dd), proj4string = latlon)
 
 #jpeg(filename="figures/FIG1_SamplingMap_v1.jpg",width =5, height=5, units = "in", res = 600)
 quartz(width=3.8,height=5)
