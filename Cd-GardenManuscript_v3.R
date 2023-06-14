@@ -244,6 +244,9 @@ all.ind$pet.diff <- all.ind$pet.2018wy - all.ind$pet
 all.ind$cwd.diff <- all.ind$cwd.2018wy - all.ind$cwd
 all.ind$ppt.diff <- all.ind$ppt.2018wy - all.ind$ppt
 
+# rename Ks to be easily located
+names(all.ind)[which(names(all.ind)=="mKs")] <- "mKs"
+
 #_________________________________________________________________________
 ####### * Merge data and Average traits to Population  ##################
 #_________________________________________________________________________
@@ -261,7 +264,7 @@ all.pop0 <- data.frame(all.ind %>% group_by(site.pop, site, pop, pop.name) %>% s
   Al_As = mean(mAl_As, na.rm=T), medAl_As = median(mAl_As, na.rm=T), seAl_As = se(mAl_As), lqAl_As=quantile(mAl_As, probs = .25, na.rm=T), uqAl_As = quantile(mAl_As, probs=.75, na.rm=T),
   kstem = mean(mkstem, na.rm=T), medkstem = median(mkstem, na.rm=T), sekstem = se(mkstem), lqkstem=quantile(mkstem, probs = .25, na.rm=T), uqkstem = quantile(mkstem, probs=.75, na.rm=T),
   kleaf = mean(mkleaf, na.rm=T), medkleaf = median(mkleaf, na.rm=T), sekleaf = se(mkleaf), lqkleaf=quantile(mkleaf, probs = .25, na.rm=T), uqkleaf = quantile(mkleaf, probs=.75, na.rm=T),
-  kstem.sa.l = mean(mkstem.sa.l, na.rm=T), medkstem.sa.l = median(mkstem.sa.l, na.rm=T), sekstem.sa.l = se(mkstem.sa.l), lqkstem.sa.l=quantile(mkstem.sa.l, probs = .25, na.rm=T), uqkstem.sa.l = quantile(mkstem.sa.l, probs=.75, na.rm=T),
+  Ks = mean(mKs, na.rm=T), medKs = median(mKs, na.rm=T), seKs = se(mKs), lqKs=quantile(mKs, probs = .25, na.rm=T), uqKs = quantile(mKs, probs=.75, na.rm=T),
   popP50leaf = mean(P50leaf, na.rm=T), medP50leaf = median(P50leaf, na.rm=T), seP50leaf = se(P50leaf), lqP50leaf = quantile(P50leaf, probs=.25, na.rm=T), upP50leaf = quantile(P50leaf, .75, na.rm=T),
   popP50stem = mean(P50stem, na.rm=T), medP50stem = median(P50stem, na.rm=T), seP50stem = se(P50stem), lqP50stem = quantile(P50stem, probs=.25, na.rm=T), upP50stem = quantile(P50stem, .75, na.rm=T)
 
@@ -413,11 +416,11 @@ HopAOV$omega2[which(HopAOV$Trait=="kstem")] <- omega2(summary(aov(mkstem~pop , H
 HopAOV$CV[which(HopAOV$Trait=="kstem")] <- sd(Hop.ind$mkstem, na.rm=T)/mean(Hop.ind$mkstem, na.rm=T)
 HopAOV$sig[which(HopAOV$Trait=="kstem")] <- aovsig(summary(aov(mkstem~pop , Hop.ind)))
 ## Ks
-HopAOV$n[which(HopAOV$Trait=="Ks")] <- length(which(Hop.ind$mkstem.sa.l>0))
-HopAOV$eta2[which(HopAOV$Trait=="Ks")] <- eta2(summary(aov(mkstem.sa.l~pop , Hop.ind)))
-HopAOV$omega2[which(HopAOV$Trait=="Ks")] <- omega2(summary(aov(mkstem.sa.l~pop , Hop.ind)))
-HopAOV$CV[which(HopAOV$Trait=="Ks")] <- sd(Hop.ind$mkstem.sa.l, na.rm=T)/mean(Hop.ind$mkstem.sa.l, na.rm=T)
-HopAOV$sig[which(HopAOV$Trait=="Ks")] <- aovsig(summary(aov(mkstem.sa.l~pop , Hop.ind)))
+HopAOV$n[which(HopAOV$Trait=="Ks")] <- length(which(Hop.ind$mKs>0))
+HopAOV$eta2[which(HopAOV$Trait=="Ks")] <- eta2(summary(aov(mKs~pop , Hop.ind)))
+HopAOV$omega2[which(HopAOV$Trait=="Ks")] <- omega2(summary(aov(mKs~pop , Hop.ind)))
+HopAOV$CV[which(HopAOV$Trait=="Ks")] <- sd(Hop.ind$mKs, na.rm=T)/mean(Hop.ind$mKs, na.rm=T)
+HopAOV$sig[which(HopAOV$Trait=="Ks")] <- aovsig(summary(aov(mKs~pop , Hop.ind)))
 ## P50stem
 HopAOV$n[which(HopAOV$Trait=="P50stem")] <- length(which(Hop.ind$P50stem<0))
 HopAOV$eta2[which(HopAOV$Trait=="P50stem")] <- eta2(summary(aov(P50stem~pop , Hop.ind)))
@@ -521,11 +524,11 @@ WildAOV$omega2[which(WildAOV$Trait=="kstem")] <- omega2(summary(aov(mkstem~pop ,
 WildAOV$CV[which(WildAOV$Trait=="kstem")] <- sd(Wild.ind$mkstem, na.rm=T)/mean(Wild.ind$mkstem, na.rm=T)
 WildAOV$sig[which(WildAOV$Trait=="kstem")] <- aovsig(summary(aov(mkstem~pop , Wild.ind)))
 ## Ks
-WildAOV$n[which(WildAOV$Trait=="Ks")] <- length(which(Wild.ind$mkstem.sa.l>0))
-WildAOV$eta2[which(WildAOV$Trait=="Ks")] <- eta2(summary(aov(mkstem.sa.l~pop , Wild.ind)))
-WildAOV$omega2[which(WildAOV$Trait=="Ks")] <- omega2(summary(aov(mkstem.sa.l~pop , Wild.ind)))
-WildAOV$CV[which(WildAOV$Trait=="Ks")] <- sd(Wild.ind$mkstem.sa.l, na.rm=T)/mean(Wild.ind$mkstem.sa.l, na.rm=T)
-WildAOV$sig[which(WildAOV$Trait=="Ks")] <- aovsig(summary(aov(mkstem.sa.l~pop , Wild.ind)))
+WildAOV$n[which(WildAOV$Trait=="Ks")] <- length(which(Wild.ind$mKs>0))
+WildAOV$eta2[which(WildAOV$Trait=="Ks")] <- eta2(summary(aov(mKs~pop , Wild.ind)))
+WildAOV$omega2[which(WildAOV$Trait=="Ks")] <- omega2(summary(aov(mKs~pop , Wild.ind)))
+WildAOV$CV[which(WildAOV$Trait=="Ks")] <- sd(Wild.ind$mKs, na.rm=T)/mean(Wild.ind$mKs, na.rm=T)
+WildAOV$sig[which(WildAOV$Trait=="Ks")] <- aovsig(summary(aov(mKs~pop , Wild.ind)))
 ## P50stem
 WildAOV$n[which(WildAOV$Trait=="P50stem")] <- length(which(Wild.ind$P50stem<0))
 WildAOV$eta2[which(WildAOV$Trait=="P50stem")] <- eta2(summary(aov(P50stem~pop , Wild.ind)))
@@ -779,7 +782,7 @@ clim.variablesH <- c("cwd","aet","pet","ppt", "tmn")
 # best.mermod("mleafsize",dataz = all.ind[which(all.ind$site=="W"),], clim.vars = clim.variables)
 # best.mermod("mkleaf",dataz = all.ind[which(all.ind$site=="W"),], clim.vars = clim.variables)
 # best.mermod("mkstem",dataz = all.ind[which(all.ind$site=="W"),], clim.vars = clim.variables)
-# best.mermod("mkstem.sa.l",dataz = all.ind[which(all.ind$site=="W"),], clim.vars = clim.variables)
+# best.mermod("mKs",dataz = all.ind[which(all.ind$site=="W"),], clim.vars = clim.variables)
 # best.mermod("P50stem",dataz = all.ind[which(all.ind$site=="W"),], clim.vars = clim.variables)
 # best.mermod("P50leaf",dataz = all.ind[which(all.ind$site=="W"),], clim.vars = clim.variables)
 # 
@@ -798,7 +801,7 @@ HopAOV$pop.rand[which(HopAOV$Trait=="Al_As")] <- test.rand(dataz=Hop.ind, trait=
 HopAOV$pop.rand[which(HopAOV$Trait=="leafsize")] <- test.rand(dataz=Hop.ind, trait="mleafsize")
 HopAOV$pop.rand[which(HopAOV$Trait=="kleaf")] <- test.rand(dataz=Hop.ind, trait="mkleaf")
 HopAOV$pop.rand[which(HopAOV$Trait=="kstem")] <- test.rand(dataz=Hop.ind, trait="mkstem")
-HopAOV$pop.rand[which(HopAOV$Trait=="Ks")] <- test.rand(dataz=Hop.ind, trait="mkstem.sa.l")
+HopAOV$pop.rand[which(HopAOV$Trait=="Ks")] <- test.rand(dataz=Hop.ind, trait="mKs")
 HopAOV$pop.rand[which(HopAOV$Trait=="P50stem")] <- test.rand(dataz=Hop.ind, trait="P50stem")
 HopAOV$pop.rand[which(HopAOV$Trait=="P50leaf")] <- test.rand(dataz=Hop.ind, trait="P50leaf")
 HopAOV$pop.rand[which(HopAOV$Trait=="Growth")] <- "yes" # can't use function, have to do manually
@@ -816,7 +819,7 @@ WildAOV$pop.rand[which(WildAOV$Trait=="Al_As")] <- test.rand(dataz=Wild.ind, tra
 WildAOV$pop.rand[which(WildAOV$Trait=="leafsize")] <- test.rand(dataz=Wild.ind, trait="mleafsize")
 WildAOV$pop.rand[which(WildAOV$Trait=="kleaf")] <- test.rand(dataz=Wild.ind, trait="mkleaf")
 WildAOV$pop.rand[which(WildAOV$Trait=="kstem")] <- test.rand(dataz=Wild.ind, trait="mkstem")
-WildAOV$pop.rand[which(WildAOV$Trait=="Ks")] <- test.rand(dataz=Wild.ind, trait="mkstem.sa.l")
+WildAOV$pop.rand[which(WildAOV$Trait=="Ks")] <- test.rand(dataz=Wild.ind, trait="mKs")
 WildAOV$pop.rand[which(WildAOV$Trait=="P50stem")] <- test.rand(dataz=Wild.ind, trait="P50stem")
 WildAOV$pop.rand[which(WildAOV$Trait=="P50leaf")] <- test.rand(dataz=Wild.ind, trait="P50leaf")
 WildAOV$pop.rand[which(WildAOV$Trait=="Growth")] <- "yes" # definitely required
@@ -853,194 +856,373 @@ WildAOV$climDeltaAIC[which(WildAOV$Trait=="SLA")] <- WildSLA$deltaAIC # grab del
 WildmodSLA <- lmer(mSLA~pet + (1|pop), Wild.ind, REML=T)
 # plot(WildmodSLA)
 # PET
-WildAOV$bestclim[which(WildAOV$Trait=="SLA")] <- "AET[wy]"
+WildAOV$bestclim[which(WildAOV$Trait=="SLA")] <- "AET[gy]"
 WildAOV$climvar[which(WildAOV$Trait=="SLA")] <- round(r.squaredGLMM(WildmodSLA)[1],2)
 WildAOV$climsig[which(WildAOV$Trait=="SLA")] <- round(summary(WildmodSLA)$coefficients[2,5],4)
 
 
 ##### . LDMC #######
+# # Hopland
+# best.mod("mLDMC",dataz=Hop.ind, clim.vars = clim.variablesH)
+# # HopmodLDMC <- lm(mLDMC~pet, Hop.ind)
+# ## plot(HopmodLDMC)
+# # null
+# HopAOV$bestclim[which(HopAOV$Trait=="LDMC")] <- "none"
+# HopAOV$climvar[which(HopAOV$Trait=="LDMC")] <- 0
+# 
+# # Wild
+# # best.mod("mLDMC",dataz=Wild.ind)
+# #  WildmodLDMC <- lm(mLDMC~aet, Wild.ind)
+# # plot(WildmodLDMC)
+# best.mermod("mLDMC",dataz=Wild.ind, clim.vars = clim.variablesW)
+# 
+# # tmx/tmin/ppt all marginally significant with linear, but ns with mixed effects
+# WildAOV$bestclim[which(WildAOV$Trait=="LDMC")] <- "none" #"AET"
+# WildAOV$climvar[which(WildAOV$Trait=="LDMC")] <- 0 #r.squaredLR(WildmodLDMC)
+
+
+##### . LDMC #######
 # Hopland
-best.mod("mLDMC",dataz=Hop.ind, clim.vars = clim.variablesH)
-# HopmodLDMC <- lm(mLDMC~pet, Hop.ind)
-## plot(HopmodLDMC)
-# null
+(HopLDMC <- best.mod("mLDMC",dataz=Hop.ind,clim.vars = clim.variablesH))
+HopAOV$climname[which(HopAOV$Trait=="LDMC")] <- HopLDMC$table$mod[1] # grab name of best climate variable from AIC table
+HopAOV$climDeltaAIC[which(HopAOV$Trait=="LDMC")] <- HopLDMC$deltaAIC # grab name of best climate variable from AIC table
+#HopmodLDMC <- lm(mLDMC~pet, Hop.ind)
+# plot(HopmodLDMC)
 HopAOV$bestclim[which(HopAOV$Trait=="LDMC")] <- "none"
 HopAOV$climvar[which(HopAOV$Trait=="LDMC")] <- 0
+HopAOV$climsig[which(HopAOV$Trait=="LDMC")] <- 1
 
 # Wild
-# best.mod("mLDMC",dataz=Wild.ind)
-#  WildmodLDMC <- lm(mLDMC~aet, Wild.ind)
+(WildLDMC<- best.mermod("mLDMC",dataz=Wild.ind, clim.vars = clim.variablesW))
+# with linear model,tmn.2018ds is vaguely important but prob ns. with lmer, null is best
+# tmx/tmin/ppt all marginally significant
+WildAOV$climname[which(WildAOV$Trait=="LDMC")] <- WildLDMC$table$mod[1] # grab name of best climate variable from AIC table
+WildAOV$climDeltaAIC[which(WildAOV$Trait=="LDMC")] <- WildLDMC$deltaAIC # grab delta from AIC table
+#WildmodLDMC <- lmer(mLDMC~pet + (1|pop), Wild.ind, REML=T)
 # plot(WildmodLDMC)
-best.mermod("mLDMC",dataz=Wild.ind, clim.vars = clim.variablesW)
+# PET
+WildAOV$bestclim[which(WildAOV$Trait=="LDMC")] <- "none"
+WildAOV$climvar[which(WildAOV$Trait=="LDMC")] <- 0 #round(r.squaredGLMM(WildmodLDMC)[1],2)
+WildAOV$climsig[which(WildAOV$Trait=="LDMC")] <- 1 #round(summary(WildmodLDMC)$coefficients[2,5],4)
 
-# tmx/tmin/ppt all marginally significant with linear, but ns with mixed effects
-WildAOV$bestclim[which(WildAOV$Trait=="LDMC")] <- "none" #"AET"
-WildAOV$climvar[which(WildAOV$Trait=="LDMC")] <- 0 #r.squaredLR(WildmodLDMC)
+
 
 
 
 
 ##### . WD #######
 # Hopland
-best.mod("mWD",dataz=Hop.ind, clim.vars = clim.variablesH)
+# best.mod("mWD",dataz=Hop.ind, clim.vars = clim.variablesH)
+# HopmodWD <- lm(mWD~ppt, Hop.ind)
+# # plot(HopmodWD)
+# # ppt
+# HopAOV$bestclim[which(HopAOV$Trait=="WD")] <- "PPT"
+# HopAOV$climvar[which(HopAOV$Trait=="WD")] <- r.squaredLR(HopmodWD)
+# 
+# # Wild
+# # best.mod("mWD",dataz=Wild.ind)
+# # WildmodWD <- lm(mWD~aet, Wild.ind)
+# # plot(WildmodWD)
+# best.mermod("mWD",dataz=Wild.ind, clim.vars = clim.variablesW)
+# WildmodWD <- lmer(mWD~aet.diff + (1|pop.name), Wild.ind) 
+# # qqp(ranef(WildmodWD)$pop[[1]])
+# # qqp(resid(WildmodWD))
+# # aet was sig with linear, aet.diff highly significant
+# WildAOV$bestclim[which(WildAOV$Trait=="WD")] <- "AET anomoly"
+# WildAOV$climvar[which(WildAOV$Trait=="WD")] <- r.squaredLR(WildmodWD)
+
+##### . WD #######
+# Hopland
+(HopWD <- best.mod("mWD",dataz=Hop.ind,clim.vars = clim.variablesH))
+HopAOV$climname[which(HopAOV$Trait=="WD")] <- HopWD$table$mod[1] # grab name of best climate variable from AIC table
+HopAOV$climDeltaAIC[which(HopAOV$Trait=="WD")] <- HopWD$deltaAIC # grab name of best climate variable from AIC table
 HopmodWD <- lm(mWD~ppt, Hop.ind)
 # plot(HopmodWD)
-# ppt
-HopAOV$bestclim[which(HopAOV$Trait=="WD")] <- "PPT"
-HopAOV$climvar[which(HopAOV$Trait=="WD")] <- r.squaredLR(HopmodWD)
-
+HopAOV$bestclim[which(HopAOV$Trait=="WD")] <- "PPT[30yr]"
+HopAOV$climvar[which(HopAOV$Trait=="WD")] <- round(r.squaredLR(HopmodWD),2)
+HopAOV$climsig[which(HopAOV$Trait=="WD")] <- round(summary(HopmodWD)$coefficients[2,4],4)
 # Wild
-# best.mod("mWD",dataz=Wild.ind)
-# WildmodWD <- lm(mWD~aet, Wild.ind)
+#best.mod("mWD",dataz=Wild.ind)
+#WildmodWD <- lm(mWD~tmx.2018ds, Wild.ind)
 # plot(WildmodWD)
-best.mermod("mWD",dataz=Wild.ind, clim.vars = clim.variablesW)
-WildmodWD <- lmer(mWD~aet.diff + (1|pop.name), Wild.ind) 
-# qqp(ranef(WildmodWD)$pop[[1]])
+(WildWD<- best.mermod("mWD",dataz=Wild.ind, clim.vars = clim.variablesW))
+# with linear model,tmn.2018ds is vaguely important but prob ns. with lmer, null is best
+# tmx/tmin/ppt all marginally significant
+WildAOV$climname[which(WildAOV$Trait=="WD")] <- WildWD$table$mod[1] # grab name of best climate variable from AIC table
+WildAOV$climDeltaAIC[which(WildAOV$Trait=="WD")] <- WildWD$deltaAIC # grab delta from AIC table
+WildmodWD <- lmer(mWD~aet.diff + (1|pop), Wild.ind, REML=T)
+# plot(WildmodWD)
 # qqp(resid(WildmodWD))
-# aet was sig with linear, aet.diff highly significant
-WildAOV$bestclim[which(WildAOV$Trait=="WD")] <- "AET anomoly"
-WildAOV$climvar[which(WildAOV$Trait=="WD")] <- r.squaredLR(WildmodWD)
+#qqp(ranef(WildmodWD)$pop[[1]])
+WildAOV$bestclim[which(WildAOV$Trait=="WD")] <- "AET[anom]"
+WildAOV$climvar[which(WildAOV$Trait=="WD")] <- round(r.squaredGLMM(WildmodWD)[1],2)
+WildAOV$climsig[which(WildAOV$Trait=="WD")] <- round(summary(WildmodWD)$coefficients[2,5],4)
+
+
 
 
 ##### . ml_ms #######
+# # Hopland
+# best.mod("mml_ms",dataz=Hop.ind, clim.vars = clim.variablesH)
+# Hopmodml_ms <- lm(mml_ms~ppt, Hop.ind)
+# # plot(Hopmodml_ms)
+# # null
+# HopAOV$bestclim[which(HopAOV$Trait=="ml_ms")] <- "none"
+# HopAOV$climvar[which(HopAOV$Trait=="ml_ms")] <- 0
+# 
+# # Wild
+# best.mod("mml_ms",dataz=Wild.ind, clim.vars = clim.variablesW)
+# Wildmodml_ms <- lm(mml_ms~tmn.2018ds, Wild.ind) # ml_ms goes down with higher Tmin 2018, goes up with PPT
+# # plot(Wildmodml_ms)
+# #qqp(resid(Wildmodml_ms)) # problematic high risids, log-transform?
+# 
+# Wild.ind$log.ml_ms <- log(Wild.ind$mml_ms, base=10)
+# best.mod("log.ml_ms",dataz=Wild.ind)
+#   #but it doesn't fundamentally change any of the inferences (same order for predictors, still highly sig)
+# 
+# # Tmin and aet pretty similar (as is Tmin2018) were significant with linear model, but not mixed
+# WildAOV$bestclim[which(WildAOV$Trait=="ml_ms")] <- "winter Tmin"
+# WildAOV$climvar[which(WildAOV$Trait=="ml_ms")] <-  r.squaredLR(Wildmodml_ms)
+
+##### . ml_ms #######
 # Hopland
-best.mod("mml_ms",dataz=Hop.ind, clim.vars = clim.variablesH)
-Hopmodml_ms <- lm(mml_ms~ppt, Hop.ind)
+(Hopml_ms <- best.mod("mml_ms",dataz=Hop.ind,clim.vars = clim.variablesH))
+HopAOV$climname[which(HopAOV$Trait=="ml_ms")] <- Hopml_ms$table$mod[1] # grab name of best climate variable from AIC table
+HopAOV$climDeltaAIC[which(HopAOV$Trait=="ml_ms")] <- Hopml_ms$deltaAIC # grab name of best climate variable from AIC table
+#Hopmodml_ms <- lm(mml_ms~pet, Hop.ind)
 # plot(Hopmodml_ms)
-# null
 HopAOV$bestclim[which(HopAOV$Trait=="ml_ms")] <- "none"
-HopAOV$climvar[which(HopAOV$Trait=="ml_ms")] <- 0
-
+HopAOV$climvar[which(HopAOV$Trait=="ml_ms")] <- 0 #round(r.squaredLR(Hopmodml_ms),2)
+HopAOV$climsig[which(HopAOV$Trait=="ml_ms")] <- 1 #round(summary(Hopmodml_ms)$coefficients[2,4],4)
 # Wild
-best.mod("mml_ms",dataz=Wild.ind, clim.vars = clim.variablesW)
-Wildmodml_ms <- lm(mml_ms~tmn.2018ds, Wild.ind) # ml_ms goes down with higher Tmin 2018, goes up with PPT
+(Wildml_ms<- best.mod("mml_ms",dataz=Wild.ind, clim.vars = clim.variablesW))
+WildAOV$climname[which(WildAOV$Trait=="ml_ms")] <- Wildml_ms$table$mod[1] # grab name of best climate variable from AIC table
+WildAOV$climDeltaAIC[which(WildAOV$Trait=="ml_ms")] <- Wildml_ms$deltaAIC # grab delta from AIC table
+Wildmodml_ms <- lm(mml_ms~tmn.2018ds, Wild.ind)
 # plot(Wildmodml_ms)
-#qqp(resid(Wildmodml_ms)) # problematic high risids, log-transform?
-
-Wild.ind$log.ml_ms <- log(Wild.ind$mml_ms, base=10)
-best.mod("log.ml_ms",dataz=Wild.ind)
-  #but it doesn't fundamentally change any of the inferences (same order for predictors, still highly sig)
-
-# Tmin and aet pretty similar (as is Tmin2018) were significant with linear model, but not mixed
-WildAOV$bestclim[which(WildAOV$Trait=="ml_ms")] <- "winter Tmin"
-WildAOV$climvar[which(WildAOV$Trait=="ml_ms")] <-  r.squaredLR(Wildmodml_ms)
-
+# PET
+WildAOV$bestclim[which(WildAOV$Trait=="ml_ms")] <- "Tmin[gy]"
+WildAOV$climvar[which(WildAOV$Trait=="ml_ms")] <- round(r.squaredGLMM(Wildmodml_ms)[1],2)
+WildAOV$climsig[which(WildAOV$Trait=="ml_ms")] <- round(summary(Wildmodml_ms)$coefficients[2,4],4)
 
 
 
 ##### . Al_As #######
+# # Hopland
+# best.mod("mAl_As",dataz=Hop.ind, clim.vars = clim.variablesH)
+# HopmodAl_As <- lm(mAl_As~tmn, Hop.ind)
+# # plot(HopmodAl_As)
+# # null
+# HopAOV$bestclim[which(HopAOV$Trait=="Al_As")] <- "none"
+# HopAOV$climvar[which(HopAOV$Trait=="Al_As")] <- 0
+# 
+# # Wild
+# # best.mod("mAl_As",dataz=Wild.ind)
+# # WildmodAl_As <- lm(mAl_As~tmn, Wild.ind) # Al_As goes down with higher Tmin, goes up with larger AET
+# # plot(WildmodAl_As)
+# best.mermod("mAl_As",dataz=Wild.ind, clim.vars = clim.variablesW)
+# # cwd.diff and pet.diff slighly better than null, but ns
+# #WildmodAl_As <- lmer(mAl_As~cwd.diff + (1|pop), Wild.ind)
+# 
+# WildAOV$bestclim[which(WildAOV$Trait=="Al_As")] <- "none" #"Tmin"
+# WildAOV$climvar[which(WildAOV$Trait=="Al_As")] <- 0 # r.squaredLR(WildmodAl_As)
+##### . Al_As #######
 # Hopland
-best.mod("mAl_As",dataz=Hop.ind, clim.vars = clim.variablesH)
-HopmodAl_As <- lm(mAl_As~tmn, Hop.ind)
+(HopAl_As <- best.mod("mAl_As",dataz=Hop.ind,clim.vars = clim.variablesH))
+HopAOV$climname[which(HopAOV$Trait=="Al_As")] <- HopAl_As$table$mod[1] # grab name of best climate variable from AIC table
+HopAOV$climDeltaAIC[which(HopAOV$Trait=="Al_As")] <- HopAl_As$deltaAIC # grab name of best climate variable from AIC table
+#HopmodAl_As <- lm(mAl_As~pet, Hop.ind)
 # plot(HopmodAl_As)
-# null
+
 HopAOV$bestclim[which(HopAOV$Trait=="Al_As")] <- "none"
-HopAOV$climvar[which(HopAOV$Trait=="Al_As")] <- 0
-
+HopAOV$climvar[which(HopAOV$Trait=="Al_As")] <- 0 #round(r.squaredLR(HopmodAl_As),2)
+HopAOV$climsig[which(HopAOV$Trait=="Al_As")] <- 1 #round(summary(HopmodAl_As)$coefficients[2,4],4)
 # Wild
-# best.mod("mAl_As",dataz=Wild.ind)
-# WildmodAl_As <- lm(mAl_As~tmn, Wild.ind) # Al_As goes down with higher Tmin, goes up with larger AET
+(WildAl_As<- best.mermod("mAl_As",dataz=Wild.ind, clim.vars = clim.variablesW))
+WildAOV$climname[which(WildAOV$Trait=="Al_As")] <- WildAl_As$table$mod[1] # grab name of best climate variable from AIC table
+WildAOV$climDeltaAIC[which(WildAOV$Trait=="Al_As")] <- WildAl_As$deltaAIC # grab delta from AIC table
+WildmodAl_As <- lmer(mAl_As~cwd.diff + (1|pop), Wild.ind, REML=T)
 # plot(WildmodAl_As)
-best.mermod("mAl_As",dataz=Wild.ind, clim.vars = clim.variablesW)
-# cwd.diff and pet.diff slighly better than null, but ns
-#WildmodAl_As <- lmer(mAl_As~cwd.diff + (1|pop), Wild.ind)
-
-WildAOV$bestclim[which(WildAOV$Trait=="Al_As")] <- "none" #"Tmin"
-WildAOV$climvar[which(WildAOV$Trait=="Al_As")] <- 0 # r.squaredLR(WildmodAl_As)
+WildAOV$bestclim[which(WildAOV$Trait=="Al_As")] <- "CWD[anom]"
+WildAOV$climvar[which(WildAOV$Trait=="Al_As")] <- round(r.squaredGLMM(WildmodAl_As)[1],2)
+WildAOV$climsig[which(WildAOV$Trait=="Al_As")] <- round(summary(WildmodAl_As)$coefficients[2,5],4)
 
 
 
 ##### . leafsize #######
+# # Hopland
+# best.modH("mleafsize",dataz=Hop.ind)
+# Hopmodleafsize <- lm(mleafsize~ppt, Hop.ind) #increases with ppt
+# # plot(Hopmodleafsize)
+# HopAOV$bestclim[which(HopAOV$Trait=="leafsize")] <- "PPT"
+# HopAOV$climvar[which(HopAOV$Trait=="leafsize")] <- r.squaredLR(Hopmodleafsize)
+# 
+# # Wild
+# best.mermod("mleafsize",dataz=Wild.ind[-c(2,12),]) # marginal at best with or without two large outliers
+# #Wildmodleafsize <- lmer(mleafsize~tmn.2018ds + (1|pop.name), Wild.ind[-c(2,12),])
+# #plot(Wildmodleafsize) #ns, with two large outliers
+# #qqp(resid(Wildmodleafsize))
+# # Null best, with both mermod and lm, and with and without two large outliers
+#   # visual patterns very unconvincing as well  
+# 
+# WildAOV$bestclim[which(WildAOV$Trait=="leafsize")] <- "none"
+# WildAOV$climvar[which(WildAOV$Trait=="leafsize")] <- 0
+
+
+
+# # ppt, with 2 decent large outliers. more significant without outliers
+##### . leafsize #######
 # Hopland
-best.modH("mleafsize",dataz=Hop.ind)
-Hopmodleafsize <- lm(mleafsize~ppt, Hop.ind) #increases with ppt
+(Hopleafsize <- best.mod("mleafsize",dataz=Hop.ind,clim.vars = clim.variablesH))
+HopAOV$climname[which(HopAOV$Trait=="leafsize")] <- Hopleafsize$table$mod[1] # grab name of best climate variable from AIC table
+HopAOV$climDeltaAIC[which(HopAOV$Trait=="leafsize")] <- Hopleafsize$deltaAIC # grab name of best climate variable from AIC table
+Hopmodleafsize <- lm(mleafsize~ppt, Hop.ind)
 # plot(Hopmodleafsize)
-# ppt, with 2 decent large outliers. more significant without outliers
-HopAOV$bestclim[which(HopAOV$Trait=="leafsize")] <- "PPT"
-HopAOV$climvar[which(HopAOV$Trait=="leafsize")] <- r.squaredLR(Hopmodleafsize)
 
+HopAOV$bestclim[which(HopAOV$Trait=="leafsize")] <- "PPT[30yr]"
+HopAOV$climvar[which(HopAOV$Trait=="leafsize")] <- round(r.squaredLR(Hopmodleafsize),2)
+HopAOV$climsig[which(HopAOV$Trait=="leafsize")] <- round(summary(Hopmodleafsize)$coefficients[2,4],4)
 # Wild
-best.mermod("mleafsize",dataz=Wild.ind[-c(2,12),]) # marginal at best with or without two large outliers
-#Wildmodleafsize <- lmer(mleafsize~tmn.2018ds + (1|pop.name), Wild.ind[-c(2,12),])
-#plot(Wildmodleafsize) #ns, with two large outliers
-#qqp(resid(Wildmodleafsize))
-# Null best, with both mermod and lm, and with and without two large outliers
-  # visual patterns very unconvincing as well  
-
-WildAOV$bestclim[which(WildAOV$Trait=="leafsize")] <- "none"
-WildAOV$climvar[which(WildAOV$Trait=="leafsize")] <- 0
-
-
+(Wildleafsize<- best.mermod("mleafsize",dataz=Wild.ind, clim.vars = clim.variablesW))
+WildAOV$climname[which(WildAOV$Trait=="leafsize")] <- Wildleafsize$table$mod[1] # grab name of best climate variable from AIC table
+WildAOV$climDeltaAIC[which(WildAOV$Trait=="leafsize")] <- Wildleafsize$deltaAIC # grab delta from AIC table
+Wildmodleafsize <- lmer(mleafsize~tmn.2018ds + (1|pop), Wild.ind, REML=T)
+# plot(Wildmodleafsize)
+WildAOV$bestclim[which(WildAOV$Trait=="leafsize")] <- "Tmin[gy]"
+WildAOV$climvar[which(WildAOV$Trait=="leafsize")] <- round(r.squaredGLMM(Wildmodleafsize)[1],2)
+WildAOV$climsig[which(WildAOV$Trait=="leafsize")] <- round(summary(Wildmodleafsize)$coefficients[2,5],4)
 
 
 
 
 ##### . kleaf #######
+# # Hopland
+# best.modH("mkleaf",dataz=Hop.ind) 
+# Hopmodkleaf <- lm(mkleaf~tmn, Hop.ind) # delta AIC only 0.3 over null
+# #plot(Hopmodkleaf)
+# # tmn ns (p=0.11)
+# HopAOV$bestclim[which(HopAOV$Trait=="kleaf")] <- "none" #"nsTmin"
+# HopAOV$climvar[which(HopAOV$Trait=="kleaf")] <- 0 #r.squaredLR(Hopmodkleaf)
+# 
+# # Wild
+# # best.mod("mkleaf",dataz=Wild.ind)
+# # Wildmodkleaf <- lm(mkleaf~cwd.2018ds, Wild.ind) #cwd 2018ds and normal cwd best
+# #  plot(Wildmodkleaf)
+# best.mermod("mkleaf",dataz=Wild.ind)
+# Wildmodkleaf <- lmer(mkleaf~cwd.2018ds + (1|pop.name), Wild.ind) #cwd 2018ds and normal cwd best
+# # plot(Wildmodkleaf)
+# # qqp(resid(Wildmodkleaf))
+# # summary(Wildmodkleaf)
+# #cwd 2018ds and normal cwd best, but only ms
+# WildAOV$bestclim[which(WildAOV$Trait=="kleaf")] <- "winter CWD"
+# WildAOV$climvar[which(WildAOV$Trait=="kleaf")] <- r.squaredGLMM(Wildmodkleaf)[1]
+
+##### . kleaf #######
 # Hopland
-best.modH("mkleaf",dataz=Hop.ind) 
-Hopmodkleaf <- lm(mkleaf~tmn, Hop.ind) # delta AIC only 0.3 over null
-#plot(Hopmodkleaf)
-# tmn ns (p=0.11)
-HopAOV$bestclim[which(HopAOV$Trait=="kleaf")] <- "none" #"nsTmin"
-HopAOV$climvar[which(HopAOV$Trait=="kleaf")] <- 0 #r.squaredLR(Hopmodkleaf)
+(Hopkleaf <- best.mod("mkleaf",dataz=Hop.ind,clim.vars = clim.variablesH))
+HopAOV$climname[which(HopAOV$Trait=="kleaf")] <- Hopkleaf$table$mod[1] # grab name of best climate variable from AIC table
+HopAOV$climDeltaAIC[which(HopAOV$Trait=="kleaf")] <- Hopkleaf$deltaAIC # grab name of best climate variable from AIC table
+Hopmodkleaf <- lm(mkleaf~tmn, Hop.ind)
+# plot(Hopmodkleaf)
 
+HopAOV$bestclim[which(HopAOV$Trait=="kleaf")] <- "Tmin[30yr]"
+HopAOV$climvar[which(HopAOV$Trait=="kleaf")] <- round(r.squaredLR(Hopmodkleaf),2)
+HopAOV$climsig[which(HopAOV$Trait=="kleaf")] <- round(summary(Hopmodkleaf)$coefficients[2,4],4)
 # Wild
-# best.mod("mkleaf",dataz=Wild.ind)
-# Wildmodkleaf <- lm(mkleaf~cwd.2018ds, Wild.ind) #cwd 2018ds and normal cwd best
-#  plot(Wildmodkleaf)
-best.mermod("mkleaf",dataz=Wild.ind)
-Wildmodkleaf <- lmer(mkleaf~cwd.2018ds + (1|pop.name), Wild.ind) #cwd 2018ds and normal cwd best
+(Wildkleaf<- best.mermod("mkleaf",dataz=Wild.ind, clim.vars = clim.variablesW))
+WildAOV$climname[which(WildAOV$Trait=="kleaf")] <- Wildkleaf$table$mod[1] # grab name of best climate variable from AIC table
+WildAOV$climDeltaAIC[which(WildAOV$Trait=="kleaf")] <- Wildkleaf$deltaAIC # grab delta from AIC table
+Wildmodkleaf <- lmer(mkleaf~cwd.2018ds + (1|pop), Wild.ind, REML=T)
 # plot(Wildmodkleaf)
-# qqp(resid(Wildmodkleaf))
-# summary(Wildmodkleaf)
-#cwd 2018ds and normal cwd best, but only ms
-WildAOV$bestclim[which(WildAOV$Trait=="kleaf")] <- "winter CWD"
-WildAOV$climvar[which(WildAOV$Trait=="kleaf")] <- r.squaredGLMM(Wildmodkleaf)[1]
+WildAOV$bestclim[which(WildAOV$Trait=="kleaf")] <- "CWD[gy]"
+WildAOV$climvar[which(WildAOV$Trait=="kleaf")] <- round(r.squaredGLMM(Wildmodkleaf)[1],2)
+WildAOV$climsig[which(WildAOV$Trait=="kleaf")] <- round(summary(Wildmodkleaf)$coefficients[2,5],4)
 
 
 
+# ##### . kstem #######
+# # Hopland
+# best.modH("mkstem",dataz=Hop.ind) 
+# Hopmodkstem <- lm(mkstem~pet, Hop.ind) # deltaAIC ~0 over null
+# # plot(Hopmodkstem)
+# # pet is nonsignificant, null is next best
+# HopAOV$bestclim[which(HopAOV$Trait=="kstem")] <- "none"
+# HopAOV$climvar[which(HopAOV$Trait=="kstem")] <-0
+# 
+# # Wild
+# # best.mod("mkstem",dataz=Wild.ind)
+# # Wildmodkstem <- lm(mkstem~tmn.2018ds, Wild.ind) 
+# #  plot(Wildmodkstem)
+# best.mermod("mkstem",dataz=Wild.ind)
+# Wildmodkstem <- lmer(mkstem~tmn.2018ds + (1|pop.name), Wild.ind) 
+# #plot(Wildmodkstem)
+# #qqp(resid(Wildmodkstem))
+# #summary(Wildmodkstem)
+# #tmn.2018ds and cwd 2018ds both pretty close, higher tmn, cwd, higher Kstem, similar with lm and lmer
+# WildAOV$bestclim[which(WildAOV$Trait=="kstem")] <- "winter Tmin"
+# WildAOV$climvar[which(WildAOV$Trait=="kstem")] <- r.squaredGLMM(Wildmodkstem)[1]
 ##### . kstem #######
 # Hopland
-best.modH("mkstem",dataz=Hop.ind) 
-Hopmodkstem <- lm(mkstem~pet, Hop.ind) # deltaAIC ~0 over null
+(Hopkstem <- best.mod("mkstem",dataz=Hop.ind,clim.vars = clim.variablesH))
+HopAOV$climname[which(HopAOV$Trait=="kstem")] <- Hopkstem$table$mod[1] # grab name of best climate variable from AIC table
+HopAOV$climDeltaAIC[which(HopAOV$Trait=="kstem")] <- Hopkstem$deltaAIC # grab name of best climate variable from AIC table
+Hopmodkstem <- lm(mkstem~pet, Hop.ind)
 # plot(Hopmodkstem)
-# pet is nonsignificant, null is next best
-HopAOV$bestclim[which(HopAOV$Trait=="kstem")] <- "none"
-HopAOV$climvar[which(HopAOV$Trait=="kstem")] <-0
 
+HopAOV$bestclim[which(HopAOV$Trait=="kstem")] <- "PET[30yr]"
+HopAOV$climvar[which(HopAOV$Trait=="kstem")] <- round(r.squaredLR(Hopmodkstem),2)
+HopAOV$climsig[which(HopAOV$Trait=="kstem")] <- round(summary(Hopmodkstem)$coefficients[2,4],4)
 # Wild
-# best.mod("mkstem",dataz=Wild.ind)
-# Wildmodkstem <- lm(mkstem~tmn.2018ds, Wild.ind) 
-#  plot(Wildmodkstem)
-best.mermod("mkstem",dataz=Wild.ind)
-Wildmodkstem <- lmer(mkstem~tmn.2018ds + (1|pop.name), Wild.ind) 
-#plot(Wildmodkstem)
-#qqp(resid(Wildmodkstem))
-#summary(Wildmodkstem)
-#tmn.2018ds and cwd 2018ds both pretty close, higher tmn, cwd, higher Kstem, similar with lm and lmer
-WildAOV$bestclim[which(WildAOV$Trait=="kstem")] <- "winter Tmin"
-WildAOV$climvar[which(WildAOV$Trait=="kstem")] <- r.squaredGLMM(Wildmodkstem)[1]
+(Wildkstem<- best.mermod("mkstem",dataz=Wild.ind, clim.vars = clim.variablesW))
+WildAOV$climname[which(WildAOV$Trait=="kstem")] <- Wildkstem$table$mod[1] # grab name of best climate variable from AIC table
+WildAOV$climDeltaAIC[which(WildAOV$Trait=="kstem")] <- Wildkstem$deltaAIC # grab delta from AIC table
+Wildmodkstem <- lmer(mkstem~tmn.2018ds + (1|pop), Wild.ind, REML=T)
+# plot(Wildmodkstem)
+WildAOV$bestclim[which(WildAOV$Trait=="kstem")] <- "Tmin[gy]"
+WildAOV$climvar[which(WildAOV$Trait=="kstem")] <- round(r.squaredGLMM(Wildmodkstem)[1],2)
+WildAOV$climsig[which(WildAOV$Trait=="kstem")] <- round(summary(Wildmodkstem)$coefficients[2,5],4)
+
 
 
 
 ##### . Ks #######
+# # Hopland
+# best.modH("mKs",dataz=Hop.ind) 
+# #HopmodKs <- lm(mKs~tmx, Hop.ind) #null best
+# # plot(HopmodKs)
+# # null  best
+# HopAOV$bestclim[which(HopAOV$Trait=="Ks")] <- "none"
+# HopAOV$climvar[which(HopAOV$Trait=="Ks")] <-0
+# 
+# # Wild - doesnt need pop random intercept
+# best.mod("mKs",dataz=Wild.ind)
+# # WildmodKs <- lm(mKs~cwd.2018ds, Wild.ind) #null is best, slightly more significant without large outlier, but still ns
+# # plot(WildmodKs)
+# # qqp(resid(WildmodKs))
+# 
+# #null
+# WildAOV$bestclim[which(WildAOV$Trait=="Ks")] <- "none"
+# WildAOV$climvar[which(WildAOV$Trait=="Ks")] <- 0
+##### . ml_ms #######
 # Hopland
-best.modH("mkstem.sa.l",dataz=Hop.ind) 
-#HopmodKs <- lm(mkstem.sa.l~tmx, Hop.ind) #null best
-# plot(HopmodKs)
-# null  best
-HopAOV$bestclim[which(HopAOV$Trait=="Ks")] <- "none"
-HopAOV$climvar[which(HopAOV$Trait=="Ks")] <-0
-
-# Wild - doesnt need pop random intercept
-best.mod("mkstem.sa.l",dataz=Wild.ind)
-# WildmodKs <- lm(mkstem.sa.l~cwd.2018ds, Wild.ind) #null is best, slightly more significant without large outlier, but still ns
-# plot(WildmodKs)
-# qqp(resid(WildmodKs))
-
-#null
-WildAOV$bestclim[which(WildAOV$Trait=="Ks")] <- "none"
-WildAOV$climvar[which(WildAOV$Trait=="Ks")] <- 0
+(Hopml_ms <- best.mod("mml_ms",dataz=Hop.ind,clim.vars = clim.variablesH))
+HopAOV$climname[which(HopAOV$Trait=="ml_ms")] <- Hopml_ms$table$mod[1] # grab name of best climate variable from AIC table
+HopAOV$climDeltaAIC[which(HopAOV$Trait=="ml_ms")] <- Hopml_ms$deltaAIC # grab name of best climate variable from AIC table
+#Hopmodml_ms <- lm(mml_ms~pet, Hop.ind)
+# plot(Hopmodml_ms)
+HopAOV$bestclim[which(HopAOV$Trait=="ml_ms")] <- "none"
+HopAOV$climvar[which(HopAOV$Trait=="ml_ms")] <- 0 #round(r.squaredLR(Hopmodml_ms),2)
+HopAOV$climsig[which(HopAOV$Trait=="ml_ms")] <- 1 #round(summary(Hopmodml_ms)$coefficients[2,4],4)
+# Wild
+(Wildml_ms<- best.mod("mml_ms",dataz=Wild.ind, clim.vars = clim.variablesW))
+WildAOV$climname[which(WildAOV$Trait=="ml_ms")] <- Wildml_ms$table$mod[1] # grab name of best climate variable from AIC table
+WildAOV$climDeltaAIC[which(WildAOV$Trait=="ml_ms")] <- Wildml_ms$deltaAIC # grab delta from AIC table
+Wildmodml_ms <- lm(mml_ms~tmn.2018ds, Wild.ind)
+# plot(Wildmodml_ms)
+# PET
+WildAOV$bestclim[which(WildAOV$Trait=="ml_ms")] <- "Tmin[gy]"
+WildAOV$climvar[which(WildAOV$Trait=="ml_ms")] <- round(r.squaredGLMM(Wildmodml_ms)[1],2)
+WildAOV$climsig[which(WildAOV$Trait=="ml_ms")] <- round(summary(Wildmodml_ms)$coefficients[2,4],4)
 
 
 
@@ -1502,8 +1684,8 @@ if(save.figures==T){
 
 # V8 moved Ml:Ms back down
 # V9, removed growth
-varsH <- c("mleafsize","mAl_As","mkleaf", "mkstem", "mkstem.sa.l","mml_ms","mSLA","mLDMC","mWD", "P50stem","P50leaf")#, "Height")
-varsW <- c("mleafsize","mAl_As","mkleaf", "mkstem", "mkstem.sa.l","mml_ms","mSLA","mLDMC","mWD", "P50stem","P50leaf")#, "perc_maxBAI")
+varsH <- c("mleafsize","mAl_As","mkleaf", "mkstem", "mKs","mml_ms","mSLA","mLDMC","mWD", "P50stem","P50leaf")#, "Height")
+varsW <- c("mleafsize","mAl_As","mkleaf", "mkstem", "mKs","mml_ms","mSLA","mLDMC","mWD", "P50stem","P50leaf")#, "perc_maxBAI")
 
 
 
@@ -1739,7 +1921,7 @@ if(save.figures==T){
 
 quartz(width=6, height=6)
 par(mfrow=c(3,3), mar=c(3.5,3.5,0,0), oma=c(0,0,1,1), mgp=c(2.1,1,0), cex.lab=1.2)
-traits <- c("SLA","LDMC","WD","ml_ms","Al_As","leafsize","kleaf","kstem","kstem.sa.l")#,"P50stem")
+traits <- c("SLA","LDMC","WD","ml_ms","Al_As","leafsize","kleaf","kstem","Ks")#,"P50stem")
 labs <- c("SLA","LDMC","WD","Ml:Ms","Al:As","Leaf size","k[leaf]","k[stem]","Ks")#,"P50")
 
 
@@ -1850,10 +2032,10 @@ if(save.figures==T){
 
 quartz(width=6.5, height=6.5)
 par(mfrow=c(3,3), mar=c(3.2,2,0,0), oma=c(0,2,1,1), mgp=c(2,1,0), cex.lab=1.5 )
-traits <- c("SLA","LDMC","WD","ml_ms","Al_As","leafsize","kleaf","kstem","kstem.sa.l","P50stem")
+traits <- c("SLA","LDMC","WD","ml_ms","Al_As","leafsize","kleaf","kstem","Ks","P50stem")
 labs <- c("SLA","LDMC","WD","Ml:Ms","Al:As","Leaf size","k[leaf]","k[stem]","Ks","P50")
 
-#traits <- c("P50leaf","P50stem","kstem","kstem.sa.l","kleaf","kleaf.sa.temp","Al_As","WD","SLA")
+#traits <- c("P50leaf","P50stem","kstem","Ks","kleaf","kleaf.sa.temp","Al_As","WD","SLA")
 for(i in 1:9){
   # subset data down to make it easier to grep colnames
   tmp <- popw %>% select(grep("Height", colnames(popw)), grep(traits[i], colnames(popw)))
@@ -1893,10 +2075,10 @@ if(save.figures==T){
 
 quartz(width=6.5, height=6.5)
 par(mfrow=c(3,3), mar=c(3.2,2,0,0), oma=c(0,2,1,1), mgp=c(2,1,0), cex.lab=1.5 )
-traits <- c("SLA","LDMC","WD","ml_ms","Al_As","leafsize","kleaf","kstem","kstem.sa.l")#,"P50stem")
+traits <- c("SLA","LDMC","WD","ml_ms","Al_As","leafsize","kleaf","kstem","Ks")#,"P50stem")
 labs <- c("SLA","LDMC","WD","Ml:Ms","Al:As","Leaf size","k[leaf]","k[stem]","Ks")#,"P50")
 
-#traits <- c("P50leaf","P50stem","kstem","kstem.sa.l","kleaf","kleaf.sa.temp","Al_As","WD","SLA")
+#traits <- c("P50leaf","P50stem","kstem","Ks","kleaf","kleaf.sa.temp","Al_As","WD","SLA")
 for(i in 1:9){
   # subset data down to make it easier to grep colnames
   tmp <- popw %>% select(grep("log.Bio", colnames(popw)), grep(traits[i], colnames(popw)))
@@ -1937,10 +2119,10 @@ if(save.figures==T){
 ### Wild version
 quartz(width=6.5, height=6.5)
 par(mfrow=c(3,3), mar=c(3.2,2,0,0), oma=c(0,2,1,1), mgp=c(2,1,0), cex.lab=1.5 )
-traits <- c("SLA","LDMC","WD","ml_ms","Al_As","leafsize","kleaf","kstem","kstem.sa.l","P50stem")
+traits <- c("SLA","LDMC","WD","ml_ms","Al_As","leafsize","kleaf","kstem","Ks","P50stem")
 labs <- c("SLA","LDMC","WD","Ml:Ms","Al:As","Leaf size","k[leaf]","k[stem]","Ks","P50")
 
-#traits <- c("P50leaf","P50stem","kstem","kstem.sa.l","kleaf","kleaf.sa.temp","Al_As","WD","SLA")
+#traits <- c("P50leaf","P50stem","kstem","Ks","kleaf","kleaf.sa.temp","Al_As","WD","SLA")
 for(i in 1:9){
   # subset data down to make it easier to grep colnames
   tmp <- popw %>% select(grep("perc_maxBAI", colnames(popw)), grep(traits[i], colnames(popw)))
@@ -2002,7 +2184,7 @@ mtext("a) branch conductance", side=3, line=0, adj=0)
 
 
 
-plot(mkstem.sa.l~P50stem, all.ind, pch=16, col=factor(site)
+plot(mKs~P50stem, all.ind, pch=16, col=factor(site)
      , ylab=expression(paste(K[s], " (",mmol*cm*s^-1*kPa^-1, ")"))
      , xlab=expression(paste(P50[stem]," (MPa)")))
 mtext("b) branch conductivity", side=3, line=0, adj=0)
