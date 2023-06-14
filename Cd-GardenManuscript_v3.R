@@ -78,7 +78,8 @@ save.figures <- T # whether to save figure pdfs
 #results.version <- "v221218"
 #results.version <- "v230113" # updated the SLA from W22
 #results.version <- "v230418" # updated leaf size and whatnot from W22
-results.version <- "v230505" # full new version after code update
+#results.version <- "v230505" # full new version after code update
+results.version <- "v230606" # manuscript revisions
 results.dir <- paste0("Results_",results.version)
 if(save.figures == T) { dir.create(results.dir)}
 
@@ -88,7 +89,7 @@ if(save.figures == T) { dir.create(results.dir)}
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 popclim <- read.csv("Data/PopulationClimate_230418.csv")[,-1]
-  # NOTE: THIS CURRENTLY HAS Canyon Ranch climate data for LPD Los Padres new site
+  
 
 
 #______________________________________________________________________
@@ -237,6 +238,11 @@ hub <- read.csv("Data/LeafTraits_cleaned_20230428.csv", row.names = 1)
 # aggregated from above data to the individual (with some name cleaning) and with P50 data from Skelton et al. 2019 New Phyt added
 all.ind <- read.csv("Data/AllIndividuals_H-W_traits_clim_20230505.csv")[,-1]
 
+# calculate 2018-Normals climate differentials
+all.ind$aet.diff <- all.ind$aet.2018wy - all.ind$aet
+all.ind$pet.diff <- all.ind$pet.2018wy - all.ind$pet
+all.ind$cwd.diff <- all.ind$cwd.2018wy - all.ind$cwd
+all.ind$ppt.diff <- all.ind$ppt.2018wy - all.ind$ppt
 
 #_________________________________________________________________________
 ####### * Merge data and Average traits to Population  ##################
@@ -345,7 +351,17 @@ all.ind$rep <- factor(all.ind$rep)
 Hop.ind <- all.ind[which(all.ind$site=="H"),]
 
 traits.to.test <- c("SLA","LDMC","WD","ml_ms","Al_As","leafsize","kleaf","kstem","Ks","P50stem","P50leaf","Growth")
-HopAOV <- data.frame(Trait=traits.to.test, n = rep(NA, length(traits.to.test)), eta2 = rep(NA, length(traits.to.test)), omega2 = rep(NA, length(traits.to.test)),sig = rep(NA, length(traits.to.test)), pop.rand = rep(NA, length(traits.to.test)), bestclim = rep(NA, length(traits.to.test)), climvar=rep(NA, length(traits.to.test)), CV=rep(NA, length(traits.to.test)))
+HopAOV <- data.frame(Trait=traits.to.test
+                     , n = rep(NA, length(traits.to.test))
+                     , eta2 = rep(NA, length(traits.to.test))
+                     , omega2 = rep(NA, length(traits.to.test))
+                     , sig = rep(NA, length(traits.to.test))
+                     , pop.rand = rep(NA, length(traits.to.test))
+                     , bestclim = rep(NA, length(traits.to.test))
+                     , climname = rep(NA, length(traits.to.test))
+                     , climDeltaAIC = rep(NA, length(traits.to.test))
+                     , climsig = rep(NA, length(traits.to.test))
+                     , climvar=rep(NA, length(traits.to.test)), CV=rep(NA, length(traits.to.test)))
 
 ## SLA
 HopAOV$n[which(HopAOV$Trait=="SLA")] <- length(which(Hop.ind$mSLA>0))
@@ -438,7 +454,19 @@ all.ind$rep <- factor(all.ind$rep)
 Wild.ind <- all.ind[which(all.ind$site=="W"),]
 
 traits.to.test <- c("SLA","LDMC","WD","ml_ms","Al_As","leafsize","kleaf","kstem","Ks","P50stem","P50leaf","Growth")
-WildAOV <- data.frame(Trait=traits.to.test, n = rep(NA, length(traits.to.test)), eta2 = rep(NA, length(traits.to.test)), omega2 = rep(NA, length(traits.to.test)),sig = rep(NA, length(traits.to.test)),pop.rand=rep(NA, length(traits.to.test)), bestclim = rep(NA, length(traits.to.test)), climvar=rep(NA, length(traits.to.test)), CV=rep(NA, length(traits.to.test)))
+WildAOV <- data.frame(Trait=traits.to.test
+                     , n = rep(NA, length(traits.to.test))
+                     , eta2 = rep(NA, length(traits.to.test))
+                     , omega2 = rep(NA, length(traits.to.test))
+                     , sig = rep(NA, length(traits.to.test))
+                     , pop.rand = rep(NA, length(traits.to.test))
+                     , bestclim = rep(NA, length(traits.to.test))
+                     , climname = rep(NA, length(traits.to.test))
+                     , climDeltaAIC = rep(NA, length(traits.to.test))
+                     , climsig = rep(NA, length(traits.to.test))
+                     , climvar=rep(NA, length(traits.to.test)), CV=rep(NA, length(traits.to.test)))
+
+
 
 ## SLA
 WildAOV$n[which(WildAOV$Trait=="SLA")] <- length(which(Wild.ind$mSLA>0))
@@ -529,51 +557,51 @@ WildAOV$sig[which(WildAOV$Trait=="Growth")] <- aovsig(summary(aov(perc_maxBAI~po
 ### create a function that tests for univariate predictors of trait values in the wild and hopland populations
 # using climate 
 
-## function for visualization of linear models to check reasonableness
-test.trait <- function(trait, dataz) {
-  quartz(width=11, height=4.5)
-  par(mfcol=c(2, 7), mar=c(4,0,0,0), oma=c(0,4,2,1), mgp=c(2.2,1,0))
-  for(i in c("cwd","aet","pet","ppt","sitePD","siteMD","siteE.drop")){
-    modW <- lm(get(trait)~get(i), dataz[which(dataz$site=="W"),])
-    modH <- lm(get(trait)~get(i), dataz[which(dataz$site=="H"),])
-    plot(get(trait)~get(i), dataz[which(dataz$site=="H"),], pch=1,xlab="", yaxt="n", ylab=trait, col=ifelse(summary(modH)$coefficients["get(i)",4]<0.05,yes = "red","black") )
-    if(i=="cwd") {mtext(trait, side=2, line=2)
-      axis(2)
-      mtext("Hopland", side=3, adj = 0)}
-    #    mtext(text = paste("site=", round(test[[1]]$`Pr(>F)`[1],2), " pop=", round(test[[1]]$`Pr(>F)`[[2]])),side=3)
-    plot(get(trait)~get(i), dataz[which(dataz$site=="W"),], pch=3,xlab=i, yaxt="n", ylab=trait, col=ifelse(summary(modW)$coefficients["get(i)",4]<0.05,yes = "red","black")  )
-    if(i=="cwd") {mtext(trait, side=2, line=2)
-      axis(2)
-      mtext("Wild", side=3, adj = 0)}
-    
-  }
-  print("WILD:")
-  print(summary(aov(get(trait)~ pop, all.ind[which(all.ind$site=="W"),])) )
-  print("HOPLAND:")
-  print(summary(aov(get(trait)~ pop, all.ind[which(all.ind$site=="H"),])) )
-}
-
-## function for visualization of linear mixed modesl to check reasonableness
-test.mertrait <- function(trait, dataz) {
-  quartz(width=11, height=4.5)
-  par(mfcol=c(2, 7), mar=c(4,0,0,0), oma=c(0,4,2,1), mgp=c(2.2,1,0))
-  for(i in c("cwd","aet","pet","ppt","sitePD","siteMD","siteE.drop")){
-    modW <- lmer(get(trait)~get(i) + (1|pop.name), dataz[which(dataz$site=="W"),])
-    modH <- lmer(get(trait)~get(i)+ (1|pop.name), dataz[which(dataz$site=="H"),])
-    plot(get(trait)~get(i), dataz[which(dataz$site=="H"),], pch=1,xlab="", yaxt="n", ylab=trait, col=ifelse(summary(modH)$coefficients["get(i)",5]<0.05,yes = "red","black") )
-    if(i=="cwd") {mtext(trait, side=2, line=2)
-      axis(2)
-      mtext("Hopland", side=3, adj = 0)}
-    #    mtext(text = paste("site=", round(test[[1]]$`Pr(>F)`[1],2), " pop=", round(test[[1]]$`Pr(>F)`[[2]])),side=3)
-    plot(get(trait)~get(i), dataz[which(dataz$site=="W"),], pch=3,xlab=i, yaxt="n", ylab=trait, col=ifelse(summary(modW)$coefficients["get(i)",5]<0.05,yes = "red","black")  )
-    if(i=="cwd") {mtext(trait, side=2, line=2)
-      axis(2)
-      mtext("Wild", side=3, adj = 0)}
-    
-  }
-  print(test <- summary(aov(get(trait)~ pop, all.ind[which(all.ind$site=="W"),])) )
-  print(test <- summary(aov(get(trait)~ pop, all.ind[which(all.ind$site=="H"),])) )
-}
+# ## function for visualization of linear models to check reasonableness
+# test.trait <- function(trait, dataz) {
+#   quartz(width=11, height=4.5)
+#   par(mfcol=c(2, 7), mar=c(4,0,0,0), oma=c(0,4,2,1), mgp=c(2.2,1,0))
+#   for(i in c("cwd","aet","pet","ppt","aet.diff","pet.diff","cwd.diff")){
+#     modW <- lm(get(trait)~get(i), dataz[which(dataz$site=="W"),])
+#     modH <- lm(get(trait)~get(i), dataz[which(dataz$site=="H"),])
+#     plot(get(trait)~get(i), dataz[which(dataz$site=="H"),], pch=1,xlab="", yaxt="n", ylab=trait, col=ifelse(summary(modH)$coefficients["get(i)",4]<0.05,yes = "red","black") )
+#     if(i=="cwd") {mtext(trait, side=2, line=2)
+#       axis(2)
+#       mtext("Hopland", side=3, adj = 0)}
+#     #    mtext(text = paste("site=", round(test[[1]]$`Pr(>F)`[1],2), " pop=", round(test[[1]]$`Pr(>F)`[[2]])),side=3)
+#     plot(get(trait)~get(i), dataz[which(dataz$site=="W"),], pch=3,xlab=i, yaxt="n", ylab=trait, col=ifelse(summary(modW)$coefficients["get(i)",4]<0.05,yes = "red","black")  )
+#     if(i=="cwd") {mtext(trait, side=2, line=2)
+#       axis(2)
+#       mtext("Wild", side=3, adj = 0)}
+#     
+#   }
+#   print("WILD:")
+#   print(summary(aov(get(trait)~ pop, all.ind[which(all.ind$site=="W"),])) )
+#   print("HOPLAND:")
+#   print(summary(aov(get(trait)~ pop, all.ind[which(all.ind$site=="H"),])) )
+# }
+# 
+# ## function for visualization of linear mixed modesl to check reasonableness
+# test.mertrait <- function(trait, dataz) {
+#   quartz(width=11, height=4.5)
+#   par(mfcol=c(2, 7), mar=c(4,0,0,0), oma=c(0,4,2,1), mgp=c(2.2,1,0))
+#   for(i in c("cwd","aet","pet","ppt","sitePD","siteMD","siteE.drop")){
+#     modW <- lmer(get(trait)~get(i) + (1|pop.name), dataz[which(dataz$site=="W"),])
+#     modH <- lmer(get(trait)~get(i)+ (1|pop.name), dataz[which(dataz$site=="H"),])
+#     plot(get(trait)~get(i), dataz[which(dataz$site=="H"),], pch=1,xlab="", yaxt="n", ylab=trait, col=ifelse(summary(modH)$coefficients["get(i)",5]<0.05,yes = "red","black") )
+#     if(i=="cwd") {mtext(trait, side=2, line=2)
+#       axis(2)
+#       mtext("Hopland", side=3, adj = 0)}
+#     #    mtext(text = paste("site=", round(test[[1]]$`Pr(>F)`[1],2), " pop=", round(test[[1]]$`Pr(>F)`[[2]])),side=3)
+#     plot(get(trait)~get(i), dataz[which(dataz$site=="W"),], pch=3,xlab=i, yaxt="n", ylab=trait, col=ifelse(summary(modW)$coefficients["get(i)",5]<0.05,yes = "red","black")  )
+#     if(i=="cwd") {mtext(trait, side=2, line=2)
+#       axis(2)
+#       mtext("Wild", side=3, adj = 0)}
+#     
+#   }
+#   print(test <- summary(aov(get(trait)~ pop, all.ind[which(all.ind$site=="W"),])) )
+#   print(test <- summary(aov(get(trait)~ pop, all.ind[which(all.ind$site=="H"),])) )
+# }
 
 ## function to test: Do we need pop random effects?
   # to double check whether we need to fit linear or linear mixed models
@@ -588,86 +616,173 @@ test.rand <- function(dataz, trait){
   else{return("no")}
 }
 
-## select best climate predictor for Wild data using linear models
-# if no pop random effect needed
-best.mod <- function(trait, dataz) {
-  modnull <- lm(get(trait)~1 ,dataz)
-  modcwd <- lm(get(trait)~cwd, dataz)
-  modaet <- lm(get(trait)~aet, dataz)
-  modpet <- lm(get(trait)~pet, dataz)
-  modppt <- lm(get(trait)~ppt, dataz)
-  modtmn <- lm(get(trait)~tmn, dataz)
-  modtmn.2018ds <- lm(get(trait)~tmn.2018ds, dataz)
-  modtmx.2018ds <- lm(get(trait)~tmx.2018ds, dataz)
-  modppt.2018ds <- lm(get(trait)~ppt.2018ds, dataz)
-  modcwd.2018ds <- lm(get(trait)~cwd.2018ds, dataz)
-  #modPD <- lm(get(trait)~sitePD, dataz) # field water potentials, but only for 6 sites
-  #modMD <- lm(get(trait)~siteMD, dataz)
-  #modE.drop <- lm(get(trait)~siteE.drop, dataz)
-  data.frame(AICc(modnull, modcwd, modaet, modpet, modppt, modtmn, modtmn.2018ds, modtmx.2018ds, modppt.2018ds, modcwd.2018ds)
-             , n=c(length(resid(modnull)), length(resid(modcwd)), length(resid(modaet)), length(resid(modpet)), length(resid(modppt)), length(resid(modtmn)), length(resid(modtmn.2018ds)), length(resid(modtmx.2018ds)), length(resid(modppt.2018ds)), length(resid(modcwd.2018ds))))[order(AIC(modnull, modcwd, modaet, modpet, modppt, modtmn, modtmn.2018ds,modtmx.2018ds, modppt.2018ds,modcwd.2018ds)[,2]),]
-  
+# ## select best climate predictor for Wild data using linear models
+# # if no pop random effect needed
+# best.mod <- function(trait, dataz) {
+#   modnull <- lm(get(trait)~1 ,dataz)
+#   modcwd <- lm(get(trait)~cwd, dataz)
+#   modaet <- lm(get(trait)~aet, dataz)
+#   modpet <- lm(get(trait)~pet, dataz)
+#   modppt <- lm(get(trait)~ppt, dataz)
+#   modtmn <- lm(get(trait)~tmn, dataz)
+#   modtmn.2018ds <- lm(get(trait)~tmn.2018ds, dataz)
+#   modtmx.2018ds <- lm(get(trait)~tmx.2018ds, dataz)
+#   modppt.2018ds <- lm(get(trait)~ppt.2018ds, dataz)
+#   modcwd.2018ds <- lm(get(trait)~cwd.2018ds, dataz)
+#   #modPD <- lm(get(trait)~sitePD, dataz) # field water potentials, but only for 6 sites
+#   #modMD <- lm(get(trait)~siteMD, dataz)
+#   #modE.drop <- lm(get(trait)~siteE.drop, dataz)
+#   data.frame(AICc(modnull, modcwd, modaet, modpet, modppt, modtmn, modtmn.2018ds, modtmx.2018ds, modppt.2018ds, modcwd.2018ds)
+#              , n=c(length(resid(modnull)), length(resid(modcwd)), length(resid(modaet)), length(resid(modpet)), length(resid(modppt)), length(resid(modtmn)), length(resid(modtmn.2018ds)), length(resid(modtmx.2018ds)), length(resid(modppt.2018ds)), length(resid(modcwd.2018ds))))[order(AIC(modnull, modcwd, modaet, modpet, modppt, modtmn, modtmn.2018ds,modtmx.2018ds, modppt.2018ds,modcwd.2018ds)[,2]),]
+#   
+# }
+# 
+# ## Seperate climate selection function for the garden, with only climate normals
+# best.modH <- function(trait, dataz) {
+#   modnull <- lm(get(trait)~1 ,dataz)
+#   modcwd <- lm(get(trait)~cwd, dataz)
+#   modaet <- lm(get(trait)~aet, dataz)
+#   modpet <- lm(get(trait)~pet, dataz)
+#   modppt <- lm(get(trait)~ppt, dataz)
+#   modtmn <- lm(get(trait)~tmn, dataz)
+#   #modtmn.2018ds <- lm(get(trait)~tmn.2018ds, dataz)
+#   #modtmx.2018ds <- lm(get(trait)~tmx.2018ds, dataz)
+#   #modppt.2018ds <- lm(get(trait)~ppt.2018ds, dataz)
+#   #modcwd.2018ds <- lm(get(trait)~cwd.2018ds, dataz)
+#   #modPD <- lm(get(trait)~sitePD, dataz)
+#   #modMD <- lm(get(trait)~siteMD, dataz)
+#   #modE.drop <- lm(get(trait)~siteE.drop, dataz)
+#   data.frame(AICc(modnull, modcwd, modaet, modpet, modppt, modtmn)
+#              , n=c(length(resid(modnull)), length(resid(modcwd)), length(resid(modaet)), length(resid(modpet)), length(resid(modppt)), length(resid(modtmn))))[order(AICc(modnull, modcwd, modaet, modpet, modppt, modtmn)[,2]),]
+#   
+# }
+# 
+# ## climate variable selection function with mixed models
+# # use if pop random effect needed
+# best.mermod <- function(trait, dataz) {
+#   modnull <- lmer(get(trait)~1 + (1|pop.name),dataz, REML=F)
+#   modcwd <- lmer(get(trait)~cwd+ (1|pop.name), dataz, REML=F)
+#   modaet <- lmer(get(trait)~aet+ (1|pop.name), dataz, REML=F)
+#   modpet <- lmer(get(trait)~pet+ (1|pop.name), dataz, REML=F)
+#   modppt <- lmer(get(trait)~ppt+ (1|pop.name), dataz, REML=F)
+#   modtmn <- lmer(get(trait)~tmn+ (1|pop.name), dataz, REML=F)
+#   modtmn.2018ds <- lmer(get(trait)~tmn.2018ds+ (1|pop.name), dataz, REML=F)
+#   modtmx.2018ds <- lmer(get(trait)~tmx.2018ds+ (1|pop.name), dataz, REML=F)
+#   modppt.2018ds <- lmer(get(trait)~ppt.2018ds+ (1|pop.name), dataz, REML=F)
+#   modcwd.2018ds <- lmer(get(trait)~cwd.2018ds+ (1|pop.name), dataz, REML=F)
+#   #modPD <- lmer(get(trait)~sitePD+ (1|pop.name), dataz, REML=F)
+#   #modMD <- lmer(get(trait)~siteMD+ (1|pop.name), dataz, REML=F)
+#   #modE.drop <- lmer(get(trait)~siteE.drop+ (1|pop), dataz, REML=F)
+#   data.frame(AICc(modnull, modcwd, modaet, modpet, modppt, modtmn, modtmn.2018ds, modtmx.2018ds, modppt.2018ds, modcwd.2018ds)
+#              , n=c(length(resid(modnull)), length(resid(modcwd)), length(resid(modaet)), length(resid(modpet)), length(resid(modppt)), length(resid(modtmn)), length(resid(modtmn.2018ds)), length(resid(modtmx.2018ds)), length(resid(modppt.2018ds)), length(resid(modcwd.2018ds))))[order(AICc(modnull, modcwd, modaet, modpet, modppt, modtmn, modtmn.2018ds,modtmx.2018ds, modppt.2018ds,modcwd.2018ds)[,2]),]
+#   
+# }
+# 
+# 
+# ## climate variable selection for garden with pop random effect.
+# best.mermodH <- function(trait, dataz) {
+#   modnull <- lmer(get(trait)~1 + (1|pop.name),dataz, REML=F)
+#   modcwd <- lmer(get(trait)~cwd+ (1|pop.name), dataz, REML=F)
+#   modaet <- lmer(get(trait)~aet+ (1|pop.name), dataz, REML=F)
+#   modpet <- lmer(get(trait)~pet+ (1|pop.name), dataz, REML=F)
+#   modppt <- lmer(get(trait)~ppt+ (1|pop.name), dataz, REML=F)
+#   modtmn <- lmer(get(trait)~tmn+ (1|pop.name), dataz, REML=F)
+#   #modtmn.2018ds <- lmer(get(trait)~tmn.2018ds+ (1|pop.name), dataz, REML=F)
+#   #modtmx.2018ds <- lmer(get(trait)~tmx.2018ds+ (1|pop.name), dataz, REML=F)
+#   #modppt.2018ds <- lmer(get(trait)~ppt.2018ds+ (1|pop.name), dataz, REML=F)
+#   #modcwd.2018ds <- lmer(get(trait)~cwd.2018ds+ (1|pop.name), dataz, REML=F)
+#   #modPD <- lmer(get(trait)~sitePD+ (1|pop.name), dataz, REML=F)
+#   #modMD <- lmer(get(trait)~siteMD+ (1|pop.name), dataz, REML=F)
+#   #modE.drop <- lmer(get(trait)~siteE.drop+ (1|pop), dataz, REML=F)
+#   data.frame(AICc(modnull, modcwd, modaet, modpet, modppt, modtmn)
+#              , n=c(length(resid(modnull)), length(resid(modcwd)), length(resid(modaet)), length(resid(modpet)), length(resid(modppt)), length(resid(modtmn))))[order(AICc(modnull, modcwd, modaet, modpet, modppt, modtmn)[,2]),]
+#   
+# }
+# 
+
+#___________ Newer Function _____________
+
+best.mermod <- function(trait, dataz, clim.vars) {
+  results <- data.frame("mod"=rep(NA, times=length(clim.vars)+1)
+                        , "n"=rep(NA, times=length(clim.vars)+1)
+                        , "AICc"=rep(NA, times=length(clim.vars)+1)
+                        , "AIC"=rep(NA, times=length(clim.vars)+1)
+                        ,"BIC"=rep(NA, times=length(clim.vars)+1)
+                        ,"df"=rep(NA, times=length(clim.vars)+1)
+  )
+  null <- lmer(get(trait)~ 1 + (1|pop), dataz, REML=F)
+  results$mod[1] <- "null"
+  results$n[1] <- nrow(null@frame)
+  results$AICc[1] <- AICc(null)
+  results$AIC[1] <- summary(null)$AICtab[1]
+  results$BIC[1] <- summary(null)$AICtab[2]
+  results$df[1] <- summary(null)$AICtab[5]
+  for (i in 1:length(clim.vars)){
+    mod <- lmer(get(trait)~ get(clim.vars[i]) + (1|pop), dataz, REML=F)
+    results$mod[i+1] <- clim.vars[i]
+    results$n[i+1] <- nrow(mod@frame)
+    results$AICc[i+1] <- AICc(mod)
+    results$AIC[i+1] <- summary(mod)$AICtab[1]
+    results$BIC[i+1] <- summary(mod)$AICtab[2]
+    results$df[i+1] <- summary(mod)$AICtab[5]
+  }
+  res <- list("table" = results %>% arrange(AICc), "deltaAIC" =  NA)
+  res$deltaAIC <-round(res$table$AICc[1] - res$table$AICc[which(res$table$mod=="null")], 2)
+  return(res)
 }
 
-## Seperate climate selection function for the garden, with only climate normals
-best.modH <- function(trait, dataz) {
-  modnull <- lm(get(trait)~1 ,dataz)
-  modcwd <- lm(get(trait)~cwd, dataz)
-  modaet <- lm(get(trait)~aet, dataz)
-  modpet <- lm(get(trait)~pet, dataz)
-  modppt <- lm(get(trait)~ppt, dataz)
-  modtmn <- lm(get(trait)~tmn, dataz)
-  #modtmn.2018ds <- lm(get(trait)~tmn.2018ds, dataz)
-  #modtmx.2018ds <- lm(get(trait)~tmx.2018ds, dataz)
-  #modppt.2018ds <- lm(get(trait)~ppt.2018ds, dataz)
-  #modcwd.2018ds <- lm(get(trait)~cwd.2018ds, dataz)
-  #modPD <- lm(get(trait)~sitePD, dataz)
-  #modMD <- lm(get(trait)~siteMD, dataz)
-  #modE.drop <- lm(get(trait)~siteE.drop, dataz)
-  data.frame(AICc(modnull, modcwd, modaet, modpet, modppt, modtmn)
-             , n=c(length(resid(modnull)), length(resid(modcwd)), length(resid(modaet)), length(resid(modpet)), length(resid(modppt)), length(resid(modtmn))))[order(AICc(modnull, modcwd, modaet, modpet, modppt, modtmn)[,2]),]
-  
+
+best.mod <- function(trait, dataz, clim.vars) {
+  results <- data.frame("mod"=rep(NA, times=length(clim.vars)+1)
+                        , "n"=rep(NA, times=length(clim.vars)+1)
+                        , "AICc"=rep(NA, times=length(clim.vars)+1)
+                        , "AIC"=rep(NA, times=length(clim.vars)+1)
+                        ,"BIC"=rep(NA, times=length(clim.vars)+1)
+                        ,"df"=rep(NA, times=length(clim.vars)+1)
+  )
+  null <- lm(get(trait)~ 1 , dataz)
+  results$mod[1] <- "null"
+  results$n[1] <- nrow(null$model)
+  results$AICc[1] <- AICc(null)
+  results$AIC[1] <- AIC(null)
+  results$BIC[1] <-BIC(null)
+  results$df[1] <- null$df.residual
+  for (i in 1:length(clim.vars)){
+    mod <- lm(get(trait)~ get(clim.vars[i]), dataz)
+    results$mod[i+1] <- clim.vars[i]
+    results$n[i+1] <- nrow(mod$model)
+    results$AICc[i+1] <- AICc(mod)
+    results$AIC[i+1] <- AIC(mod)
+    results$BIC[i+1] <- BIC(mod)
+    results$df[i+1] <- mod$df.residual
+  }
+  res <- list("table" = results %>% arrange(AICc), "deltaAIC" =  NA)
+  res$deltaAIC <-round(res$table$AICc[1] - res$table$AICc[which(res$table$mod=="null")], 2)
+  return(res)
 }
 
-## climate variable selection function with mixed models
-# use if pop random effect needed
-best.mermod <- function(trait, dataz) {
-  modnull <- lmer(get(trait)~1 + (1|pop.name),dataz, REML=F)
-  modcwd <- lmer(get(trait)~cwd+ (1|pop.name), dataz, REML=F)
-  modaet <- lmer(get(trait)~aet+ (1|pop.name), dataz, REML=F)
-  modpet <- lmer(get(trait)~pet+ (1|pop.name), dataz, REML=F)
-  modppt <- lmer(get(trait)~ppt+ (1|pop.name), dataz, REML=F)
-  modtmn <- lmer(get(trait)~tmn+ (1|pop.name), dataz, REML=F)
-  modtmn.2018ds <- lmer(get(trait)~tmn.2018ds+ (1|pop.name), dataz, REML=F)
-  modtmx.2018ds <- lmer(get(trait)~tmx.2018ds+ (1|pop.name), dataz, REML=F)
-  modppt.2018ds <- lmer(get(trait)~ppt.2018ds+ (1|pop.name), dataz, REML=F)
-  modcwd.2018ds <- lmer(get(trait)~cwd.2018ds+ (1|pop.name), dataz, REML=F)
-  #modPD <- lmer(get(trait)~sitePD+ (1|pop.name), dataz, REML=F)
-  #modMD <- lmer(get(trait)~siteMD+ (1|pop.name), dataz, REML=F)
-  #modE.drop <- lmer(get(trait)~siteE.drop+ (1|pop), dataz, REML=F)
-  data.frame(AICc(modnull, modcwd, modaet, modpet, modppt, modtmn, modtmn.2018ds, modtmx.2018ds, modppt.2018ds, modcwd.2018ds)
-             , n=c(length(resid(modnull)), length(resid(modcwd)), length(resid(modaet)), length(resid(modpet)), length(resid(modppt)), length(resid(modtmn)), length(resid(modtmn.2018ds)), length(resid(modtmx.2018ds)), length(resid(modppt.2018ds)), length(resid(modcwd.2018ds))))[order(AICc(modnull, modcwd, modaet, modpet, modppt, modtmn, modtmn.2018ds,modtmx.2018ds, modppt.2018ds,modcwd.2018ds)[,2]),]
-  
-}
-## climate variable selection for garden with pop random effect.
-best.mermodH <- function(trait, dataz) {
-  modnull <- lmer(get(trait)~1 + (1|pop.name),dataz, REML=F)
-  modcwd <- lmer(get(trait)~cwd+ (1|pop.name), dataz, REML=F)
-  modaet <- lmer(get(trait)~aet+ (1|pop.name), dataz, REML=F)
-  modpet <- lmer(get(trait)~pet+ (1|pop.name), dataz, REML=F)
-  modppt <- lmer(get(trait)~ppt+ (1|pop.name), dataz, REML=F)
-  modtmn <- lmer(get(trait)~tmn+ (1|pop.name), dataz, REML=F)
-  #modtmn.2018ds <- lmer(get(trait)~tmn.2018ds+ (1|pop.name), dataz, REML=F)
-  #modtmx.2018ds <- lmer(get(trait)~tmx.2018ds+ (1|pop.name), dataz, REML=F)
-  #modppt.2018ds <- lmer(get(trait)~ppt.2018ds+ (1|pop.name), dataz, REML=F)
-  #modcwd.2018ds <- lmer(get(trait)~cwd.2018ds+ (1|pop.name), dataz, REML=F)
-  #modPD <- lmer(get(trait)~sitePD+ (1|pop.name), dataz, REML=F)
-  #modMD <- lmer(get(trait)~siteMD+ (1|pop.name), dataz, REML=F)
-  #modE.drop <- lmer(get(trait)~siteE.drop+ (1|pop), dataz, REML=F)
-  data.frame(AICc(modnull, modcwd, modaet, modpet, modppt, modtmn)
-             , n=c(length(resid(modnull)), length(resid(modcwd)), length(resid(modaet)), length(resid(modpet)), length(resid(modppt)), length(resid(modtmn))))[order(AICc(modnull, modcwd, modaet, modpet, modppt, modtmn)[,2]),]
-  
-}
+
+# climate variables for wild populations (climate normals, 2018 dormant season, 2018-normals anamoly)
+clim.variablesW <- c("cwd","aet","pet","ppt","tmn","cwd.2018ds","aet.2018ds","pet.2018ds","ppt.2018ds","tmn.2018ds","tmx.2018ds", "cwd.diff","aet.diff","pet.diff","ppt.diff")
+# climate variables for the garden (just climate normals)
+clim.variablesH <- c("cwd","aet","pet","ppt", "tmn")
+
+
+# 
+# best.mermod("mSLA",dataz = all.ind[which(all.ind$site=="W"),], clim.vars = clim.variables)
+# best.mermod("mLDMC",dataz = all.ind[which(all.ind$site=="W"),], clim.vars = clim.variables)
+# best.mermod("mWD",dataz = all.ind[which(all.ind$site=="W"),], clim.vars = clim.variables)
+# # diffs all good
+# best.mermod("mml_ms",dataz = all.ind[which(all.ind$site=="W"),], clim.vars = clim.variables)
+# best.mermod("mAl_As",dataz = all.ind[which(all.ind$site=="W"),], clim.vars = clim.variables)
+#   # diffs marginal
+# best.mermod("mleafsize",dataz = all.ind[which(all.ind$site=="W"),], clim.vars = clim.variables)
+# best.mermod("mkleaf",dataz = all.ind[which(all.ind$site=="W"),], clim.vars = clim.variables)
+# best.mermod("mkstem",dataz = all.ind[which(all.ind$site=="W"),], clim.vars = clim.variables)
+# best.mermod("mkstem.sa.l",dataz = all.ind[which(all.ind$site=="W"),], clim.vars = clim.variables)
+# best.mermod("P50stem",dataz = all.ind[which(all.ind$site=="W"),], clim.vars = clim.variables)
+# best.mermod("P50leaf",dataz = all.ind[which(all.ind$site=="W"),], clim.vars = clim.variables)
+# 
 
 #_______________________________________________________________________________
 ############ . identify best Trait-climate relationships ############################
@@ -704,7 +819,7 @@ WildAOV$pop.rand[which(WildAOV$Trait=="kstem")] <- test.rand(dataz=Wild.ind, tra
 WildAOV$pop.rand[which(WildAOV$Trait=="Ks")] <- test.rand(dataz=Wild.ind, trait="mkstem.sa.l")
 WildAOV$pop.rand[which(WildAOV$Trait=="P50stem")] <- test.rand(dataz=Wild.ind, trait="P50stem")
 WildAOV$pop.rand[which(WildAOV$Trait=="P50leaf")] <- test.rand(dataz=Wild.ind, trait="P50leaf")
-WildAOV$pop.rand[which(WildAOV$Trait=="Growth")] <- "yes"
+WildAOV$pop.rand[which(WildAOV$Trait=="Growth")] <- "yes" # definitely required
 
   ## test for Growth
 # null <- gls(model = perc_maxBAI~ppt + pet + tmn, wg)
@@ -717,27 +832,35 @@ WildAOV$pop.rand[which(WildAOV$Trait=="Growth")] <- "yes"
 
 ##### . SLA #######
 # Hopland
- best.modH("mSLA",dataz=Hop.ind)
+(HopSLA <- best.mod("mSLA",dataz=Hop.ind,clim.vars = clim.variablesH))
+HopAOV$climname[which(HopAOV$Trait=="SLA")] <- HopSLA$table$mod[1] # grab name of best climate variable from AIC table
+HopAOV$climDeltaAIC[which(HopAOV$Trait=="SLA")] <- HopSLA$deltaAIC # grab name of best climate variable from AIC table
 HopmodSLA <- lm(mSLA~pet, Hop.ind)
 # plot(HopmodSLA)
 # PET
-HopAOV$bestclim[which(HopAOV$Trait=="SLA")] <- "PET"
-HopAOV$climvar[which(HopAOV$Trait=="SLA")] <- r.squaredLR(HopmodSLA)
-
+HopAOV$bestclim[which(HopAOV$Trait=="SLA")] <- "PET[30yr]"
+HopAOV$climvar[which(HopAOV$Trait=="SLA")] <- round(r.squaredLR(HopmodSLA),2)
+HopAOV$climsig[which(HopAOV$Trait=="SLA")] <- round(summary(HopmodSLA)$coefficients[2,4],4)
 # Wild
 #best.mod("mSLA",dataz=Wild.ind)
 #WildmodSLA <- lm(mSLA~tmx.2018ds, Wild.ind)
 # plot(WildmodSLA)
-best.mermod("mSLA",dataz=Wild.ind)
+(WildSLA<- best.mermod("mSLA",dataz=Wild.ind, clim.vars = clim.variablesW))
   # with linear model,tmn.2018ds is vaguely important but prob ns. with lmer, null is best
 # tmx/tmin/ppt all marginally significant
-WildAOV$bestclim[which(WildAOV$Trait=="SLA")] <- "none"
-WildAOV$climvar[which(WildAOV$Trait=="SLA")] <- 0 #r.squaredLR(WildmodSLA)
+WildAOV$climname[which(WildAOV$Trait=="SLA")] <- WildSLA$table$mod[1] # grab name of best climate variable from AIC table
+WildAOV$climDeltaAIC[which(WildAOV$Trait=="SLA")] <- WildSLA$deltaAIC # grab delta from AIC table
+WildmodSLA <- lmer(mSLA~pet + (1|pop), Wild.ind, REML=T)
+# plot(WildmodSLA)
+# PET
+WildAOV$bestclim[which(WildAOV$Trait=="SLA")] <- "AET[wy]"
+WildAOV$climvar[which(WildAOV$Trait=="SLA")] <- round(r.squaredGLMM(WildmodSLA)[1],2)
+WildAOV$climsig[which(WildAOV$Trait=="SLA")] <- round(summary(WildmodSLA)$coefficients[2,5],4)
 
 
 ##### . LDMC #######
 # Hopland
-best.modH("mLDMC",dataz=Hop.ind)
+best.mod("mLDMC",dataz=Hop.ind, clim.vars = clim.variablesH)
 # HopmodLDMC <- lm(mLDMC~pet, Hop.ind)
 ## plot(HopmodLDMC)
 # null
@@ -748,7 +871,7 @@ HopAOV$climvar[which(HopAOV$Trait=="LDMC")] <- 0
 # best.mod("mLDMC",dataz=Wild.ind)
 #  WildmodLDMC <- lm(mLDMC~aet, Wild.ind)
 # plot(WildmodLDMC)
-best.mermod("mLDMC",dataz=Wild.ind)
+best.mermod("mLDMC",dataz=Wild.ind, clim.vars = clim.variablesW)
 
 # tmx/tmin/ppt all marginally significant with linear, but ns with mixed effects
 WildAOV$bestclim[which(WildAOV$Trait=="LDMC")] <- "none" #"AET"
@@ -759,7 +882,7 @@ WildAOV$climvar[which(WildAOV$Trait=="LDMC")] <- 0 #r.squaredLR(WildmodLDMC)
 
 ##### . WD #######
 # Hopland
-best.modH("mWD",dataz=Hop.ind)
+best.mod("mWD",dataz=Hop.ind, clim.vars = clim.variablesH)
 HopmodWD <- lm(mWD~ppt, Hop.ind)
 # plot(HopmodWD)
 # ppt
@@ -770,16 +893,18 @@ HopAOV$climvar[which(HopAOV$Trait=="WD")] <- r.squaredLR(HopmodWD)
 # best.mod("mWD",dataz=Wild.ind)
 # WildmodWD <- lm(mWD~aet, Wild.ind)
 # plot(WildmodWD)
-best.mermod("mWD",dataz=Wild.ind)
-WildmodWD <- lmer(mWD~aet + (1|pop.name), Wild.ind) #  totally ns
-# aet was sig with linear, but not with mixed effects
-WildAOV$bestclim[which(WildAOV$Trait=="WD")] <- "none" #"AET"
-WildAOV$climvar[which(WildAOV$Trait=="WD")] <- 0 #r.squaredLR(WildmodWD)
+best.mermod("mWD",dataz=Wild.ind, clim.vars = clim.variablesW)
+WildmodWD <- lmer(mWD~aet.diff + (1|pop.name), Wild.ind) 
+# qqp(ranef(WildmodWD)$pop[[1]])
+# qqp(resid(WildmodWD))
+# aet was sig with linear, aet.diff highly significant
+WildAOV$bestclim[which(WildAOV$Trait=="WD")] <- "AET anomoly"
+WildAOV$climvar[which(WildAOV$Trait=="WD")] <- r.squaredLR(WildmodWD)
 
 
 ##### . ml_ms #######
 # Hopland
-best.modH("mml_ms",dataz=Hop.ind)
+best.mod("mml_ms",dataz=Hop.ind, clim.vars = clim.variablesH)
 Hopmodml_ms <- lm(mml_ms~ppt, Hop.ind)
 # plot(Hopmodml_ms)
 # null
@@ -787,9 +912,9 @@ HopAOV$bestclim[which(HopAOV$Trait=="ml_ms")] <- "none"
 HopAOV$climvar[which(HopAOV$Trait=="ml_ms")] <- 0
 
 # Wild
- best.mod("mml_ms",dataz=Wild.ind)
+best.mod("mml_ms",dataz=Wild.ind, clim.vars = clim.variablesW)
 Wildmodml_ms <- lm(mml_ms~tmn.2018ds, Wild.ind) # ml_ms goes down with higher Tmin 2018, goes up with PPT
-#plot(Wildmodml_ms)
+# plot(Wildmodml_ms)
 #qqp(resid(Wildmodml_ms)) # problematic high risids, log-transform?
 
 Wild.ind$log.ml_ms <- log(Wild.ind$mml_ms, base=10)
@@ -805,7 +930,7 @@ WildAOV$climvar[which(WildAOV$Trait=="ml_ms")] <-  r.squaredLR(Wildmodml_ms)
 
 ##### . Al_As #######
 # Hopland
-best.modH("mAl_As",dataz=Hop.ind)
+best.mod("mAl_As",dataz=Hop.ind, clim.vars = clim.variablesH)
 HopmodAl_As <- lm(mAl_As~tmn, Hop.ind)
 # plot(HopmodAl_As)
 # null
@@ -816,9 +941,10 @@ HopAOV$climvar[which(HopAOV$Trait=="Al_As")] <- 0
 # best.mod("mAl_As",dataz=Wild.ind)
 # WildmodAl_As <- lm(mAl_As~tmn, Wild.ind) # Al_As goes down with higher Tmin, goes up with larger AET
 # plot(WildmodAl_As)
-best.mermod("mAl_As",dataz=Wild.ind)
+best.mermod("mAl_As",dataz=Wild.ind, clim.vars = clim.variablesW)
+# cwd.diff and pet.diff slighly better than null, but ns
+#WildmodAl_As <- lmer(mAl_As~cwd.diff + (1|pop), Wild.ind)
 
-# Tmin and aet pretty similar (as is Tmin2018) were significant with linear model, but not mixed
 WildAOV$bestclim[which(WildAOV$Trait=="Al_As")] <- "none" #"Tmin"
 WildAOV$climvar[which(WildAOV$Trait=="Al_As")] <- 0 # r.squaredLR(WildmodAl_As)
 
