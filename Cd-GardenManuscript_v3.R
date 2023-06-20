@@ -332,13 +332,13 @@ popw <- left_join(popw0, wg.pop, by=c("pop.name"="Site"))
 # function to calculate eta2 (among population variance)
 eta2 <- function(aovres, group = "pop"){
   eta2 <- aovres[[1]]$'Sum Sq'[grep(group, rownames(aovres[[1]]))]/sum(aovres[[1]]$`Sum Sq`)
-  return(eta2)
+  return(round(eta2,2))
 }
 
 # function to calculate omega2 (unbiased among pop variance)
 omega2 <- function(aovres, group = "pop"){
   omega2 <- (aovres[[1]]$'Sum Sq'[grep(group, rownames(aovres[[1]]))] - (aovres[[1]]$Df[grep(group, rownames(aovres[[1]]))]*aovres[[1]]$`Mean Sq`[grep("Residuals", rownames(aovres[[1]]))]))/(sum(aovres[[1]]$`Sum Sq`)+aovres[[1]]$`Mean Sq`[grep("Residuals", rownames(aovres[[1]]))])
-  return(omega2)
+  return(round(omega2,2))
 }
 
 # extract significance of pop factor in anova
@@ -444,6 +444,7 @@ HopAOV$omega2[which(HopAOV$Trait=="Growth")] <- omega2(summary(aov(log.bio~facto
 HopAOV$CV[which(HopAOV$Trait=="Growth")] <- sd(hoptrees$log.bio, na.rm=T)/mean(hoptrees$log.bio, na.rm=T)
 HopAOV$sig[which(HopAOV$Trait=="Growth")] <- aovsig(summary(aov(log.bio~factor(pop) + factor(rep), hoptrees)))
 
+HopAOV$CV <- round(HopAOV$CV, 3)
 
 # --NOT RUN -- double checking whether the garden blocking factor 'rep' needs to be included
 # HopAOVnorep <- HopAOV
@@ -551,7 +552,7 @@ WildAOV$omega2[which(WildAOV$Trait=="Growth")] <- omega2(summary(aov(perc_maxBAI
 WildAOV$CV[which(WildAOV$Trait=="Growth")] <- sd(wg$perc_maxBAI)/mean(wg$perc_maxBAI)
 WildAOV$sig[which(WildAOV$Trait=="Growth")] <- aovsig(summary(aov(perc_maxBAI~pop, wg %>% select(perc_maxBAI,pop=Site))))
 
-
+WildAOV$CV <- round(WildAOV$CV, 3)
 
 
 #______________________________________________________________________
@@ -1438,7 +1439,7 @@ HopP50leafvar <- data.frame(VarCorr(HopP50leafvd))
 HopGrowthvar <- data.frame(VarCorr(HopGrowthvd))
 
 # make a data frame, rows are initially: between tree (within ppop, between pop, rep (remove/ignore), and within tree
-variancesHop2 <- data.frame(HopP50stemvar[,4],HopP50leafvar[,4],HopGrowthvar[,4], row.names = c("btwPop","wiPop"))
+variancesHop2 <- data.frame(c(HopP50stemvar[,4],0),c(HopP50leafvar[,4],0),c(HopGrowthvar[,4],0), row.names = c("btwPop","wiPop","wiTree"))
 
 colnames(variancesHop2) <- c("P50stem","P50leaf","Growth")
 
@@ -1494,16 +1495,16 @@ WildP50leafvar <- data.frame(VarCorr(WildP50leafvd))
 WildGrowthvar <- data.frame(VarCorr(WildGrowthvd))
 
 # make a data frame, rows are initially: between tree (within ppop, between pop, rep (remove/ignore), and within tree
-variancesWild2 <- data.frame(WildP50stemvar[,4],WildP50leafvar[,4],WildGrowthvar[,4], row.names = c("btwPop","wiPop"))
+variancesWild2 <- data.frame(c(WildP50stemvar[,4],0),c(WildP50leafvar[,4],0),c(WildGrowthvar[,4],0), row.names = c("btwPop","wiPop","wiTree"))
 
 colnames(variancesWild2) <- c("P50stem","P50leaf","Growth")
 
 scaledvariancesWild2 <- apply(variancesWild2, MARGIN=2, FUN= function(x){x/sum(x)})
 
 
-
-
-
+## combined variances of traits with within/tree variation and those without 
+scaledvariancesHop.comb <- cbind(scaledvariancesHop, scaledvariancesHop2)
+scaledvariancesWild.comb <- cbind(scaledvariancesWild, scaledvariancesWild2)
 
 #______________________________________________________________________
 ######## ** FIG1: Var Decomp #################
@@ -1916,14 +1917,19 @@ if(save.figures==T){
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 
+#______________________________________________________________________
+######## ** Table S1: Site Info #################
+#______________________________________________________________________
 
-
-
+siteinfo <- popclim[which(popclim$Garden_pop %in% c(1,3,15,16,18,22,26)),] %>% select(Code,elevation,tmn1951_1980, tmx1951_1980, ppt1951_1980,pet1951_1980,cwd1951_1980)
+siteinfo.round <- apply(siteinfo[,-1], MARGIN=2, FUN=round, digits=1)
+siteinfo.clean <- cbind(siteinfo$Code, siteinfo.round)
+write.csv(siteinfo.clean, paste0(results.dir,"/TableS1_SiteCharacteristics.csv"))
 
 #______________________________________________________________________
 ######## ** FIG S1: Map #################
 #______________________________________________________________________
-mypallight <- paste0(brewer.pal(n=8, "Dark2"), "55")
+mypallight <- paste0(brewer.pal(n=8, "Dark2"), "33")
 
 
 # turn sampling locations into spatial data for plotting
@@ -1931,15 +1937,28 @@ mypallight <- paste0(brewer.pal(n=8, "Dark2"), "55")
 latlon <- sp::CRS("+proj=longlat +datum=WGS84")
 sampledlocs <- sp::SpatialPoints(coords = data.frame(popclim$Lon.dd, popclim$Lat.dd), proj4string = latlon)
 
+plotlocs <- popclim[which(popclim$Garden_pop %in% c(1,3,15,16,18,22,26)),] %>% select(Garden_pop, Code, Lon.dd, Lat.dd)
+plotlocs$label.Lon <- plotlocs$Lon.dd
+plotlocs$label.Lon[5] <- -120.9
+plotlocs$label.Lon[6] <- -119.9
+
+plotlocs$label.Lat <- plotlocs$Lat.dd+.24
+plotlocs$label.Lat[4] <- plotlocs$Lat.dd[4]-0.24
+plotlocs$label.Lat[5] <- plotlocs$Lat.dd[5]+.15
 #jpeg(filename="figures/FIG1_SamplingMap_v1.jpg",width =5, height=5, units = "in", res = 600)
 quartz(width=3.8,height=5)
 #par(mar=c(0,0,0,0))
 CA <- maps::map('state', region = c('california'), col="black") 
 
+
 points(latitude~longitude, qudo[which(qudo$latitude>33.5),], pch=16, col=mypallight[1])
-legend('topright',legend = c("herbarium sample", 'common garden','source pops'), pch=c(16,17,15), col = c(mypallight[1],"black",mypal[4]),pt.bg=mypal[1], pt.cex = c(1,1.5,1), bty="n")
+legend('topright',legend = c("herbarium sample", 'common garden','source pops'), pch=c(16,17,16), col = c(mypallight[1],"black","black"),pt.bg=mypal[1], pt.cex = c(1,1.5,1), bty="n")
 #points(gardenlocs.latlon)
-points(sampledlocs[which(popclim$Garden_pop %in% c(1,3,15,16,18,22,26))], pch=15, cex=1, col=mypal[4])
+points(sampledlocs[which(popclim$Garden_pop %in% c(1,3,15,16,18,22,26))], pch=16, cex=.8, col="black")#mypal[4])
+text(x=plotlocs$label.Lon
+     ,y=plotlocs$label.Lat
+     ,labels = popclim$Code[which(popclim$Garden_pop %in% c(1,3,15,16,18,22,26))]
+     ,cex=.7)
 # text(garden.sampledlocs.latlon, labels=gardens.sampled$Garden_pop)
 points(sampledlocs[which(popclim$Code =="HREC")], pch=17,col="black", bg=mypal[1], cex=1.6)
 # add a north arrow
@@ -1955,12 +1974,33 @@ points(sampledlocs[which(popclim$Code =="HREC")], pch=17,col="black", bg=mypal[1
 #dev.off()
 
 if(save.figures==T){
-  quartz.save(file=paste0(results.dir,"/Fig_Map_v1.pdf"), type="pdf")
+  quartz.save(file=paste0(results.dir,"/Fig_Map_v2.pdf"), type="pdf")
 }
 
 
 
 
+
+#_________________________________________________________________________________
+################# ** FIG S2: BAI standardization to size #################
+#_________________________________________________________________________________
+
+quartz(width=4, height=4)
+plot(BAI_cm2~DBH_cm, wildgrowth,type="n",xlab="DBH (cm)", ylab="Basal Area Increment (cm2)")
+points(BAI_cm2~DBH_cm, wildgrowth, col=factor(Site), pch=16)
+points(BAI_cm2~DBH_cm, wildgrowth[which(wildgrowth$Site %in% c("SJR", "LYN","SMR","SMT","SON", "SRD")),], pch=1, cex=1.1) # highlight the trees actually from this study
+# median
+abline(rq(BAI_cm2~DBH_cm, wildgrowth,tau=.9),col="blue")
+# # other range of quantiles
+# taus <- c(.05,.1,.25,0.5,.75,.90,.95)
+# 
+# for( i in 1:length(taus)){
+#   abline(rq(BAI_cm2~DBH_cm, wildgrowth,tau=taus[i]),col="gray")
+# }
+legend('topleft', legend=c("6 study sites", "5 additional sites"), pch=c(21,16), col=c("black","grey"), pt.bg = "gray")
+if(save.figures==T){
+  quartz.save(file=paste0(results.dir,"/FigS2_BAI-v-DBH_v1.pdf"), type="pdf")
+}
 
 #_________________________________________________________________________________
 ################# ** FIG S2: Wild vs Garden pop trait means #################
