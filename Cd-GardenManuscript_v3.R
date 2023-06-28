@@ -1503,8 +1503,14 @@ scaledvariancesWild2 <- apply(variancesWild2, MARGIN=2, FUN= function(x){x/sum(x
 
 
 ## combined variances of traits with within/tree variation and those without 
+variancesHop.comb <- cbind(variancesHop, variancesHop2)
+variancesWild.comb <- cbind(variancesWild, variancesWild2)
+
 scaledvariancesHop.comb <- cbind(scaledvariancesHop, scaledvariancesHop2)
 scaledvariancesWild.comb <- cbind(scaledvariancesWild, scaledvariancesWild2)
+
+
+
 
 #______________________________________________________________________
 ######## ** FIG1: Var Decomp #################
@@ -1553,7 +1559,7 @@ axis(1,at=p,labels= c("SLA","LDMC","WD","Ml:Ms","Al:As","Leaf Size","k[leaf]","k
 #dev.off()
 palette(mypal)
 if(save.figures==T){
-  quartz.save(file=paste0(results.dir,"/Fig_VarainceDecomp_scaled_v5.pdf"),type = "pdf" )
+  quartz.save(file=paste0(results.dir,"/Fig1_VarainceDecomp_scaled_v5.pdf"),type = "pdf" )
 }
 
 #_________________
@@ -1600,6 +1606,48 @@ if(save.figures==T){
 }
 
 
+#_________________
+###### Fig 1 V2: all bars together ##
+#_________________
+
+quartz(width=6.3,height=5.4) 
+#jpeg(file=paste0("./","/Fig_VarainceDecomp_scaled.jpg"), width=4.3, height=5.4, units="in", res=600)
+par(mfrow=c(2,1), mar=c(1,3.6,1,3.6), mgp=c(2.3,1,0), oma=c(3.6,0,3,0), cex.lab=1.4, cex.axis=1.1)
+p<-barplot(height=as.matrix(scaledvariancesHop.comb)
+           , beside=F, names.arg=rep(NA, times=12)
+           , col = pal.vardecomp
+           , legend.text= c("Btw Pops", "Btw Trees", "Within Tree")
+           , args.legend=list(bty="n", x=11.5, y=1.5, xpd=NA, cex=1,xjust=0.5, ncol=4)
+           , ylab="% Var in Garden", las=3
+           , xlim=c(1.1,24.2), width=1, space=1)#,  yaxt="n" # ylim=c(0,0.008),
+axis(4,at=c(0,.4,.8), labels = c(0,.4,.6)*round(max(HopAOV$CV, na.rm=T),1), xpd=NA,col="#333333", col.axis="#333333")
+mtext("Trait CV", side = 4, line =2.3)
+barplot(height=as.matrix(t(HopAOV$CV/max(HopAOV$CV, na.rm=T))), add=T
+        , space=c(4,3,3,3,3,3,3,3,3,3,3,3), width=.5, names.arg=rep(NA, times=12))
+#text(x=p,y=colSums(scaledvariancesWD)+.001, labels=climsens, srt=90, xpd=T, font=c(2,2,1,1,2,2,2,1))
+mtext(text = "a)", side=3, adj=-0.12, line=.2)
+
+p<-barplot(height=as.matrix(scaledvariancesWild.comb)
+           , beside=F, names.arg=rep(NA, times=12)
+           , col = pal.vardecomp
+           , legend.text= NULL
+           , args.legend=list(bty="n", x=mean(c(1.1,16)), y=1.5, xpd=NA, cex=1,xjust=0.5, ncol=4)
+           , ylab="% Var in Wild", las=3
+           , xlim=c(1.1,24.2), width=1, space=1)#,  yaxt="n" # ylim=c(0,0.008),
+axis(4,at=c(0,.4,.8), labels = c(0,.4,.6)*round(max(WildAOV$CV, na.rm=T),1), xpd=NA,col="#333333", col.axis="#333333")
+mtext("Trait CV", side = 4, line =2.3)
+barplot(height=as.matrix(t(WildAOV$CV/max(WildAOV$CV, na.rm=T))), add=T
+        , space=c(4,3,3,3,3,3,3,3,3,3,3,3), width=.5, names.arg=rep(NA, times=12))
+#text(x=p,y=colSums(scaledvariancesWD)+.001, labels=climsens, srt=90, xpd=T, font=c(2,2,1,1,2,2,2,1))
+mtext(text = "b)", side=3, adj=-0.12, line=.2)
+
+axis(1,at=p,labels= c("SLA","LDMC","WD","Ml:Ms","Al:As","Leaf Size","k[leaf]","k[stem]","K[s]","P50[stem]","P50[leaf]","Growth")
+     ,font=1, cex.axis = 1.1, tick=F,las=2, mgp=c(2,.2,0))
+#dev.off()
+palette(mypal)
+if(save.figures==T){
+  quartz.save(file=paste0(results.dir,"/Fig_VarainceDecomp_scaled_combined_v1.pdf"),type = "pdf" )
+}
 
 
 #________________________________________________________________________
@@ -1613,19 +1661,20 @@ HopAOV$Plotting.Sig[which(HopAOV$sig<= 0.05)]<-16
 
 WildAOV$Plotting.Sig <- 1
 WildAOV$Plotting.Sig[which(WildAOV$sig<= 0.05)]<-16
-
+WildAOV$Plotting.Clim.Sig <- 1
+WildAOV$Plotting.Clim.Sig[which(WildAOV$climsig<= 0.05)]<-16
 palette(mypal)
 
 quartz(width=7, height=3.5)
 layout(matrix(c(1,2), nrow=1),widths = c(1.3,1) )
 
 par(mar=c(3.5,3.5,2,6), mgp=c(2.5,1,0))
-plot(WildAOV$eta2*100~I(HopAOV$eta2*100), col=factor(WildAOV$Trait), pch=WildAOV$Plotting.Sig, cex=2, lwd=1.8,
+plot(WildAOV$eta2*100~I(HopAOV$eta2*100), col=factor(WildAOV$Trait), pch=WildAOV$Plotting.Sig, cex=1, lwd=1.8,
      xlim=c(0,.7)*100, ylim=c(0,.7)*100,xaxs="i", yaxs="i",
      xlab="Garden: Btw-Pop Variation (%)", ylab="Wild: Btw-Site Variation (%)")
 abline(a=0,b=1)
 # plot the significant garden pop differences with a black circle
-points(WildAOV$eta2[which(HopAOV$sig<0.05)]*100~I(HopAOV$eta2[which(HopAOV$sig<0.05)]*100), pch=3, cex=2, lwd=1.8, col=factor(HopAOV$Trait)[which(HopAOV$sig<0.1)])
+points(WildAOV$eta2[which(HopAOV$sig<0.05)]*100~I(HopAOV$eta2[which(HopAOV$sig<0.05)]*100), pch=3, cex=1.5, lwd=1.8, col=factor(HopAOV$Trait)[which(HopAOV$sig<0.1)])
 legend.names <- c("SLA"
                   ,"LDMC"
                   ,"WD"
@@ -1638,25 +1687,47 @@ legend.names <- c("SLA"
                   , "P50[stem]"
                   , "P50[leaf]"
                   , "Growth")
-legend("bottomright", legend=c("Garden sig", "Wild sig", "ns",""), pch=c(3,16,1,1),col=c("black","black","black","white"), bty="n", xpd=F)
+
+legend("bottomright", legend=c("Garden sig", "Wild sig", "ns","","",""), pch=c(3,16,1,1,1),col=c("black","black","black",rep("white",3)), bty="n", xpd=F, cex=.8)
 
 legend(x=75,y=70, legend=legend.names, col=mypal[c(11,6,12,8,1,7,3,5,4,10,9,2)]
        , pch=15, xpd=NA,horiz = F, bty='n')
 mtext(text = "a)", side=3, adj=-0.12, line=.4)
 
+textlocs.x <- HopAOV$eta2*100
+textlocs.y <- WildAOV$eta2*100
+textlocs.y[which(textlocs.y<51.5)] <- textlocs.y[which(textlocs.y<51.5)]- 2.7
+textlocs.y[which(textlocs.y>51.5)] <- textlocs.y[which(textlocs.y>51.5)] + 2.7
+textlocs.x[2] <- 17 # shift LDMC left
+textlocs.x[5] <- 28 # shift Al:As right
+textlocs.x[7] <- 12 # shift kleaf right
+text(y=textlocs.y, x=textlocs.x, legend.names, cex=.6)
 
 par(mar=c(3.5,3.5,2,1), mgp=c(2.5,1,0))
-plot(I(climvar*100)~I(eta2*100), data=WildAOV[which(WildAOV$sig<= 0.05),], pch=16,cex=1.5,col=factor(WildAOV$Trait)[which(WildAOV$sig<= 0.05)],
+plot(I(climvar*100)~I(eta2*100), data=WildAOV[which(WildAOV$sig<= 0.05 | WildAOV$climsig<=0.05),], pch=Plotting.Clim.Sig,cex=1,col=factor(WildAOV$Trait)[which(WildAOV$sig<= 0.05 | WildAOV$climsig<=0.05)],
      xlim=c(0,.7)*100, ylim=c(0,.7)*100,xaxs="i",
+     lwd=1.8,
      xlab="Btw-Site or Btw-Pop Variation (%)", ylab="Variation Explained by Climate")
-points(I(climvar*100)~I(eta2*100), data=HopAOV[which(HopAOV$sig<=0.05),], pch=3,cex=1.5,col=factor(HopAOV$Trait)[which(HopAOV$sig<=0.05)])
+points(I(climvar*100)~I(eta2*100), data=HopAOV[which(HopAOV$climsig<=0.05),], pch=3,cex=1.3,col=factor(HopAOV$Trait)[which(HopAOV$climsig<=0.05)], lwd=1.8)
 abline(a=0,b=1)
 mtext(text = "b)", side=3, adj=-0.12, line=.4)
+# trait labels for Wild
+textlocs.x <- WildAOV$eta2[which(WildAOV$sig<= 0.05 | WildAOV$climsig<=0.05)]*100
+textlocs.y <- WildAOV$climvar[which(WildAOV$sig<= 0.05 | WildAOV$climsig<=0.05)]*100 + 2.7
+textlocs.x[8] <- 51+4  # shift kstem right
+textlocs.x[5] <- 55+5 # shift Al:As right
+text(y=textlocs.y, x=textlocs.x, legend.names[which(WildAOV$sig<= 0.05 | WildAOV$climsig<=0.05)], cex=.6)
+
+# trait labels for garden
+with(HopAOV[which(HopAOV$climsig<=0.05),], text(y=climvar*100-2.5, x= eta2*100-5, cex=.6, font=2, c("SLA","WD","Leaf Size","Growth") ))
+
 
 #legend('topleft', legend=c("Garden","Wild"), pch=c(3,17), bty="n")
 if(save.figures==T){
-  quartz.save(file=paste0(results.dir,"/Fig_G-vs-GE_variation_v5.pdf"), type="pdf")
+  quartz.save(file=paste0(results.dir,"/Fig2_G-vs-GE_variation_v5.pdf"), type="pdf")
 }
+
+
 
 
 
@@ -1682,8 +1753,10 @@ var.boot <- function(trait, boots=1000){
   varsumsWild <- quantile(variances$Wild, c(.05,.25,.5,.75,.95))
   names(varsumsWild) <- c("Wild.05", "Wild.25", "Wild.50", "Wild.75", "Wild.95")
   varratio <- quantile(variances$Wild/variances$Hop, c(.05, .1,.5,.9,.95))
-  names(varratio) <- c("ratio.05", "ratio.10", "ratio.50", "ratio.90", "ratio.95")
-  varsums <- c(varsumsHop, varsumsWild,varratio)
+  names(varratio) <- c("ratio.05", "ratio.10", "ratio.50", "ratio.90", "ratio.95") # wild/garden
+  varperc <- quantile(variances$Hop/variances$Wild, c(.05, .1,.5,.9,.95)) # garden/wild
+  names(varperc) <- c("perc.05", "perc.10", "perc.50", "perc.90", "perc.95")
+  varsums <- c(varsumsHop, varsumsWild,varratio, varperc)
   return(varsums)
 }
 
@@ -1699,6 +1772,8 @@ varcomps <- data.frame(varcomps)
 rownames(varcomps) <- vars
 #varcomps$sig
 
+
+# Showing the Wild/Garden ratio
 quartz(width=6, height=3)
 par(mar=c(5,4,1,1))
 tmp <- varcomps$Wild.50/varcomps$Hop.50
@@ -1706,22 +1781,57 @@ statest <- varcomps$Wild.05/varcomps$Hop.50
 bp <- barplot(varcomps$ratio.50, las=2
               , names.arg = c("SLA","LDMC","WD","Ml:Ms","Al:As","Leaf size","k[leaf]","k[stem]", "Ks","P50[stem]","P50[leaf]")
               , ylab="Wild Var : Garden Var", ylim=c(0,2.9)
-              , border = c(rep("white",3), rep("black", 4), "white",rep("black",3))
-              , col = c(rep("lightgray",3), rep("white", 4), "lightgray",rep("white",3)))
+              , border = c(rep("white",3), rep("black", 8)), # "white",rep("black",3))
+              , col = c(rep("lightgray",3), rep("white", 8) )) #"lightgray",rep("white",3))) #with marginal significance
 #arrows(x0=bp, y0=varcomps$ratio.10, y1=varcomps$ratio.90, lwd=4, length = 0)
-arrows(x0=bp, y0=varcomps$ratio.05, y1=varcomps$ratio.95, lwd=2, length = 0, col="grey")
-arrows(x0=bp, y0=varcomps$ratio.10, y1=varcomps$ratio.90, lwd=4, length = 0, col="darkgray")
+arrows(x0=bp, y0=varcomps$ratio.05, y1=varcomps$ratio.95, lwd=4, length = 0, col="darkgrey")
+#arrows(x0=bp, y0=varcomps$ratio.10, y1=varcomps$ratio.90, lwd=4, length = 0, col="darkgray")
 
 
-abline(h=1, lty=2)
+abline(h=1, lty=2, lwd=2)
+
+points(comparison$perc_wild[1:11]~bp, cex=2, pch=16)
+
+text(c("btw Pop\nVar", "total Var"), x=c(1.9, 7.9), y=c(.6, 2.2))
+arrows(x0=c(2.2,7.9), x1=c(2.95,9), y0=c(0.6,2.08), y1=c(0.22,1.7 ), length=.1)
 
 if(save.figures==T){
-  quartz.save(file=paste0(results.dir,"/Fig_WvGvariance_comparison_v2.pdf"),type = "pdf")
+  quartz.save(file=paste0(results.dir,"/Fig3_WvGvariance_comparison_v2.pdf"),type = "pdf")
+}
+
+
+## Showing the % of Wild variance in the Garden
+quartz(width=6, height=3)
+par(mar=c(5,4,1,1))
+tmp <- varcomps$Hop.50/varcomps$Wild.50
+statest <- varcomps$Wild.05/varcomps$Hop.50
+bp <- barplot(varcomps$perc.50, las=2
+              , names.arg = c("SLA","LDMC","WD","Ml:Ms","Al:As","Leaf size","k[leaf]","k[stem]", "Ks","P50[stem]","P50[leaf]")
+              , ylab="Garden Var : Wild Var", ylim=c(0,1.9)
+              , border = c(rep("white",3), rep("black", 8)), # "white",rep("black",3))
+              , col = c(rep("lightgray",3), rep("white", 8) )) #"lightgray",rep("white",3))) #with marginal significance
+#arrows(x0=bp, y0=varcomps$ratio.10, y1=varcomps$ratio.90, lwd=4, length = 0)
+arrows(x0=bp, y0=varcomps$perc.05, y1=varcomps$perc.95, lwd=4, length = 0, col="darkgrey")
+#arrows(x0=bp, y0=varcomps$ratio.10, y1=varcomps$ratio.90, lwd=4, length = 0, col="darkgray")
+legend("topleft",legend=c("Total Var","btw Pop Var"), pch=c(NA, 16), fill = c("white",NA), merge=T, border = c("black","white"), bty="n")
+
+abline(h=1, lty=2, lwd=2)
+
+points(comparison$perc_wild[1:11]~bp, cex=2, pch=16)
+
+# text(c("btw Pop\nVar", "total Var"), x=c(1.9, 7.9), y=c(.6, 2.2))
+# arrows(x0=c(2.2,7.9), x1=c(2.95,9), y0=c(0.6,2.08), y1=c(0.22,1.7 ), length=.1)
+
+if(save.figures==T){
+  quartz.save(file=paste0(results.dir,"/Fig3_GvWvariance_comparison_v1.pdf"),type = "pdf")
 }
 
 
 
-
+### Comparing the size of among-population variance (raw)
+comparison <- data.frame( "Garden" = t(variancesHop.comb)[,1], "Wild" = t(variancesWild.comb)[,1])
+comparison$perc_wild <- comparison$Garden/comparison$Wild
+comparison$perc_wild[which(comparison$perc_wild == Inf)] <- NA
 
 #_________________________________________________________________________________
 ################# ** FIG4: Trait Integration correlation plots #################
@@ -1788,7 +1898,7 @@ corrplot::corrplot(corAll.named, p.mat=1/pmatAll*.01, sig.level=0.1, insig="pch"
                    , type="lower", diag=F, add=F, cl.pos="n", method="ellipse", outline=F, addgrid.col = NA, tl.col="black"
 )
 if(save.figures==T){
-  quartz.save(file=paste0(results.dir,"/Fig_Correlation_Heatmap_Hopland_v9.", type="pdf"))
+  quartz.save(file=paste0(results.dir,"/Fig4_Correlation_Heatmap_Hopland_v9.", type="pdf"))
 }
 
 
@@ -1819,7 +1929,7 @@ corrplot::corrplot(corW.named, p.mat=1/pmatW*.01, sig.level=0.1, insig="pch",pch
                    , type="lower", add=F, diag=F, cl.pos="n", tl.col="black"
                    , method="ellipse", outline = F, addgrid.col = NA)
 if(save.figures==T){
-  quartz.save(file=paste0(results.dir,"/Fig_Correlation_Heatmap_Wild_v9.", type="pdf"))
+  quartz.save(file=paste0(results.dir,"/Fig4_Correlation_Heatmap_Wild_v9.", type="pdf"))
 }
 
 
@@ -1887,22 +1997,22 @@ rownames(hwcomprevscale) <- c("Leaf size","Al:As","k[leaf]","k[stem]", "Ks","Ml:
 
 corcolors <- corrplot::COL2(n = 7) # pull the colors for making a legend
 
-# get rid of the alpha<0.2 correlation changes (v5)
-hwcomprevscale_trm <- hwcomprevscale
-hwcomprevscale_trm[which(hwcomprevscale_trm<0.6)] <- 0
+# # get rid of the alpha<0.2 correlation changes (v5)
+# hwcomprevscale_trm <- hwcomprevscale
+# hwcomprevscale_trm[which(hwcomprevscale_trm<0.6)] <- 0
 
 quartz(width=4, height=4)
 corrplot::corrplot(hwcomprevscale_trm, p.mat=NULL, sig.level=0.04, insig="pch",pch=16, pch.cex=.8
                    , type="lower", add=F, diag=F, cl.pos="n", tl.col="black"
                    , method="color", outline = T, addgrid.col = F)
 # v4 w 0.2 alpha cutoff
-# legend("topright", bty="n", legend=c("alpha <0.2","alpha <0.1", "alpha <0.05"), pch=15, pt.cex = 2, col=corcolors[5:7], xpd=NA)
+ legend("topright", bty="n", legend=c("alpha <0.2","alpha <0.1", "alpha <0.05"), pch=15, pt.cex = 2, col=corcolors[5:7], xpd=NA)
 # v5 w/out .2, hwcomprevscaled_trm
-legend("topright", bty="n", legend=c("alpha <0.1", "alpha <0.05"), pch=15, pt.cex = 2, col=corcolors[6:7], xpd=NA)
+# legend("topright", bty="n", legend=c("alpha <0.1", "alpha <0.05"), pch=15, pt.cex = 2, col=corcolors[6:7], xpd=NA)
 
 
 if(save.figures==T){
-  quartz.save(file=paste0(results.dir,"/Fig_Correlation_SigFig_v5.pdf"), type="pdf")
+  quartz.save(file=paste0(results.dir,"/Fig5_Correlation_SigFig_v5.pdf"), type="pdf")
 }
 
 
