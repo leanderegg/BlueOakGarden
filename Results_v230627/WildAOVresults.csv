@@ -1,0 +1,13 @@
+,Trait,n,eta2,omega2,sig,pop.rand,bestclim,climDeltaAIC,climsig,climvar,CV,climname
+1,SLA,47,0.6,0.54,0,yes,AET[gy],-0.3,0.3531,0.08,0.157,aet.2018ds
+2,LDMC,46,0.55,0.48,0,yes,none,0,1,0,0.085,null
+3,WD,51,0.42,0.33,0,yes,AET[anom],-5.35,0.0249,0.27,0.051,aet.diff
+4,ml_ms,45,0.48,0.4,0,no,Tmin[gy],-15.14,0,0.32,0.443,tmn.2018ds
+5,Al_As,48,0.55,0.48,0,yes,CWD[anom],-1.18,0.136,0.21,0.324,cwd.diff
+6,leafsize,48,0.39,0.3,0.002,yes,Tmin[gy],-1.04,0.1538,0.14,0.342,tmn.2018ds
+7,kleaf,33,0.52,0.4,0.003,yes,CWD[gy],-1.82,0.0877,0.22,0.165,cwd.2018ds
+8,kstem,33,0.51,0.39,0.003,yes,Tmin[gy],-3.43,0.0482,0.28,0.367,tmn.2018ds
+9,Ks,33,0.06,-0.15,0.932,no,none,0,1,0,0.546,null
+10,P50stem,37,0.2,0.04,0.301,no,AET[30yr],-3.74,0.017,0.15,0.226,aet
+11,P50leaf,23,0.09,-0.24,0.943,no,none,0,1,0,0.207,null
+12,Growth,32,0.44,0.33,0.007,yes,none,0,1,0,0.504,null
