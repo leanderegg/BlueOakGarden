@@ -80,7 +80,8 @@ save.figures <- T # whether to save figure pdfs
 #results.version <- "v230418" # updated leaf size and whatnot from W22
 #results.version <- "v230505" # full new version after code update
 #results.version <- "v230606" # manuscript revisions
-results.version <- "v230627" # updated SI figures and Figs 2/3
+#results.version <- "v230627" # updated SI figures and Figs 2/3
+results.version <- "v240105" # updated for revision
 results.dir <- paste0("Results_",results.version)
 if(save.figures == T) { dir.create(results.dir)}
 
@@ -137,13 +138,25 @@ hoptrees$jjaT <- popclim$jja1951_1980[match(hoptrees$pop, popclim$Garden_pop)]
 hoptrees$djfT <- popclim$djf1951_1980[match(hoptrees$pop, popclim$Garden_pop)]
 hoptrees$log.bio <- log(hoptrees$bioest, base=10)
 
+## calcualte Transfer distance between garden and source locations
+hoptrees$cwd.td <- hoptrees$cwd - popclim$cwd1951_1980[which(popclim$Site=="HREC Garden")]
+#hoptrees$soil_depth <- popinfo2$soil_depth[match(hoptrees$pop, popinfo2$Garden_pop)]
+hoptrees$aet.td <- hoptrees$aet - popclim$aet1951_1980[which(popclim$Site=="HREC Garden")]
+hoptrees$pet.td <- hoptrees$pet - popclim$pet1951_1980[which(popclim$Site=="HREC Garden")]
+hoptrees$ppt.td <- hoptrees$ppt - popclim$ppt1951_1980[which(popclim$Site=="HREC Garden")]
+hoptrees$tmn.td <- hoptrees$tmn - popclim$tmn1951_1980[which(popclim$Site=="HREC Garden")]
+hoptrees$tmx.td <- hoptrees$tmx - popclim$tmx1951_1980[which(popclim$Site=="HREC Garden")]
+hoptrees$jjaT.td <- hoptrees$jjaT - popclim$jja1951_1980[which(popclim$Site=="HREC Garden")]
+hoptrees$djfT.td <- hoptrees$djfT - popclim$djf1951_1980[which(popclim$Site=="HREC Garden")]
+
 
 hoppop <- hoptrees %>% group_by(pop) %>% summarise(Bio = mean(bioest, na.rm=T), sdBio=sd(bioest,na.rm=T), seBio=se(bioest),
                                                    log.Bio =mean(log.bio, na.rm=T), sdlog.Bio=sd(log.bio,na.rm=T), selog.Bio=se(log.bio),
                                                        mort = length(which(is.na(height))), mort2 = length(which(stems==0)), mort3 = 18 - n() + length(which(is.na(height))),
                                                        Height = mean(height, na.rm=T), sdHeight=sd(height,na.rm=T), seHeight=se(height),
                                                        Diam = mean(diam_50cm, na.rm=T), sdDiam=sd(diam_50cm, na.rm=T),seDaim=se(diam_50cm),
-                                                       cwd = unique(cwd), ppt = unique(ppt), aet=unique(aet), pet=unique(pet), tmn=unique(tmn), tmx=unique(tmx)) 
+                                                       cwd = unique(cwd), ppt = unique(ppt), aet=unique(aet), pet=unique(pet), tmn=unique(tmn), tmx=unique(tmx),
+                                                   cwd.td = unique(cwd.td), ppt.td = unique(ppt.td), aet.td=unique(aet.td), pet.td=unique(pet.td), tmn.td=unique(tmn.td), tmx.td=unique(tmx.td))  
 
 
 
@@ -841,7 +854,7 @@ WildAOV$pop.rand[which(WildAOV$Trait=="Growth")] <- "yes" # definitely required
 
 ##### . SLA #######
 # Hopland
-(HopSLA <- best.mod("mSLA",dataz=Hop.ind,clim.vars = clim.variablesH))
+(HopSLA <- best.mermod("mSLA",dataz=Hop.ind,clim.vars = clim.variablesH))
 HopAOV$climname[which(HopAOV$Trait=="SLA")] <- HopSLA$table$mod[1] # grab name of best climate variable from AIC table
 HopAOV$climDeltaAIC[which(HopAOV$Trait=="SLA")] <- HopSLA$deltaAIC # grab name of best climate variable from AIC table
 HopmodSLA <- lm(mSLA~pet, Hop.ind)
@@ -939,7 +952,7 @@ WildAOV$climsig[which(WildAOV$Trait=="LDMC")] <- 1 #round(summary(WildmodLDMC)$c
 
 ##### . WD #######
 # Hopland
-(HopWD <- best.mod("mWD",dataz=Hop.ind,clim.vars = clim.variablesH))
+(HopWD <- best.mermod("mWD",dataz=Hop.ind,clim.vars = clim.variablesH))
 HopAOV$climname[which(HopAOV$Trait=="WD")] <- HopWD$table$mod[1] # grab name of best climate variable from AIC table
 HopAOV$climDeltaAIC[which(HopAOV$Trait=="WD")] <- HopWD$deltaAIC # grab name of best climate variable from AIC table
 HopmodWD <- lm(mWD~ppt, Hop.ind)
@@ -1001,7 +1014,7 @@ HopAOV$bestclim[which(HopAOV$Trait=="ml_ms")] <- "none"
 HopAOV$climvar[which(HopAOV$Trait=="ml_ms")] <- 0 #round(r.squaredLR(Hopmodml_ms),2)
 HopAOV$climsig[which(HopAOV$Trait=="ml_ms")] <- 1 #round(summary(Hopmodml_ms)$coefficients[2,4],4)
 # Wild
-(Wildml_ms<- best.mod("mml_ms",dataz=Wild.ind, clim.vars = clim.variablesW))
+(Wildml_ms<- best.mermod("mml_ms",dataz=Wild.ind, clim.vars = clim.variablesW))
 WildAOV$climname[which(WildAOV$Trait=="ml_ms")] <- Wildml_ms$table$mod[1] # grab name of best climate variable from AIC table
 WildAOV$climDeltaAIC[which(WildAOV$Trait=="ml_ms")] <- Wildml_ms$deltaAIC # grab delta from AIC table
 Wildmodml_ms <- lm(mml_ms~tmn.2018ds, Wild.ind)
@@ -1079,7 +1092,7 @@ WildAOV$climsig[which(WildAOV$Trait=="Al_As")] <- round(summary(WildmodAl_As)$co
 # # ppt, with 2 decent large outliers. more significant without outliers
 ##### . leafsize #######
 # Hopland
-(Hopleafsize <- best.mod("mleafsize",dataz=Hop.ind,clim.vars = clim.variablesH))
+(Hopleafsize <- best.mermod("mleafsize",dataz=Hop.ind,clim.vars = clim.variablesH))
 HopAOV$climname[which(HopAOV$Trait=="leafsize")] <- Hopleafsize$table$mod[1] # grab name of best climate variable from AIC table
 HopAOV$climDeltaAIC[which(HopAOV$Trait=="leafsize")] <- Hopleafsize$deltaAIC # grab name of best climate variable from AIC table
 Hopmodleafsize <- lm(mleafsize~ppt, Hop.ind)
