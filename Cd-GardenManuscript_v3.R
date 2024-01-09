@@ -1003,6 +1003,10 @@ WildAOV$climsig[which(WildAOV$Trait=="WD")] <- round(summary(WildmodWD)$coeffici
 # WildAOV$bestclim[which(WildAOV$Trait=="ml_ms")] <- "winter Tmin"
 # WildAOV$climvar[which(WildAOV$Trait=="ml_ms")] <-  r.squaredLR(Wildmodml_ms)
 
+
+# insert incredible analysis
+
+
 ##### . ml_ms #######
 # Hopland
 (Hopml_ms <- best.mod("mml_ms",dataz=Hop.ind,clim.vars = clim.variablesH))
