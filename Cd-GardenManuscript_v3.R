@@ -32,6 +32,8 @@ require(quantreg)
 require(tidyr)
 require(ggcorrplot)
 library(sjPlot)
+library(png)
+library(mgcv)
 
 mypal <- c(brewer.pal(n=9, "Set1"), brewer.pal(n=8, "Dark2"))
 palette(mypal)
@@ -263,6 +265,8 @@ all.ind$ppt.diff <- all.ind$ppt.2018wy - all.ind$ppt
 # rename Ks to be easily located
 names(all.ind)[which(names(all.ind)=="mkstem.sa.l")] <- "mKs"
 
+
+
 #_________________________________________________________________________
 ####### * Merge data and Average traits to Population  ##################
 #_________________________________________________________________________
@@ -301,7 +305,7 @@ all.pop0$dieback_10km <- popclim$proportion_10km[match(all.pop0$pop, popclim$Gar
 all.pop0$cw.surp <- all.pop0$cwd *-1
 
 # summarize wild growth to population
-wg.pop <- wg %>% group_by(Site) %>% summarise(DBH = mean(DBH_cm), medDBH = median(DBH_cm, na.rm=T), seDBH = se(DBH_cm), lqDBH=quantile(DBH_cm, probs = .25, na.rm=T), uqDBH = quantile(DBH_cm, probs=.75, na.rm=T),
+wg.pop <- wg %>% group_by(Site, pet) %>% summarise(DBH = mean(DBH_cm), medDBH = median(DBH_cm, na.rm=T), seDBH = se(DBH_cm), lqDBH=quantile(DBH_cm, probs = .25, na.rm=T), uqDBH = quantile(DBH_cm, probs=.75, na.rm=T),
                                               BAI = mean(BAI_cm2), , medBAI = median(BAI_cm2, na.rm=T), seBAI = se(BAI_cm2), lqBAI=quantile(BAI_cm2, probs = .25, na.rm=T), uqBAI = quantile(BAI_cm2, probs=.75, na.rm=T),
                                               growthsup = mean(growthsup_cm2), , medgrowthsup = median(growthsup_cm2, na.rm=T), segrowthsup = se(growthsup_cm2), lqgrowthsup=quantile(growthsup_cm2, probs = .25, na.rm=T), uqgrowthsup = quantile(growthsup_cm2, probs=.75, na.rm=T),
                                               mperc_maxBAI=mean(perc_maxBAI), medperc_maxBAI = median(perc_maxBAI, na.rm=T), seperc_maxBAI = se(perc_maxBAI), lqperc_maxBAI=quantile(perc_maxBAI, probs = .25, na.rm=T), uqperc_maxBAI = quantile(perc_maxBAI, probs=.75, na.rm=T))
@@ -315,7 +319,7 @@ all.pop.wide <- cast(all.pop.m, pop + pop.name + cwd + aet + pet + ppt + tmn + t
 
 
 ### add in Hopland garden growth data for FINAL population averages
-popw0 <- left_join(all.pop.wide, hoppop[,c(1:15)])
+popw0 <- left_join(all.pop.wide, hoppop %>% select(1:15, "pet.td"))
 ### add in wild growth data
 popw <- left_join(popw0, wg.pop, by=c("pop.name"="Site"))
 
@@ -336,6 +340,36 @@ popw <- left_join(popw0, wg.pop, by=c("pop.name"="Site"))
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ################ BEGIN: ANALYSIS #######################################
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+#______________________________________________________________________
+####### * Garden growth transfer distance #############################
+#______________________________________________________________________
+
+
+# test for hump-shaped relationship with climate transfer distance in height
+gardengrowth1 <- gamm(height~s(pet.td),random = list(pop=~1), data = hoptrees)
+gardengrowth2 <- gamm(height~s(tmn.td),random = list(pop=~1), data = hoptrees)
+gardengrowth3 <- gamm(height~s(ppt.td),random = list(pop=~1), data = hoptrees)
+gardengrowth4 <- gamm(height~s(aet.td),random = list(pop=~1), data = hoptrees)
+gardengrowth5 <- gamm(height~s(cwd.td),random = list(pop=~1), data = hoptrees)
+AIC(gardengrowth1,gardengrowth2,gardengrowth3,gardengrowth4,gardengrowth5)
+gam.check(gardengrowth1$gam) # things look decent from model criticism
+# PET is the best climate predictor, and peaks at a transfer distance quite a ways from 0
+
+
+# same but with diamater @ 50cm instead of height
+# gardengrowth1.diam <- gamm(diam_50cm~s(pet.td),random = list(pop=~1), data = tmp)
+# gardengrowth2.diam <- gamm(diam_50cm~s(tmn.td),random = list(pop=~1), data = tmp)
+# gardengrowth3.diam <- gamm(diam_50cm~s(ppt.td),random = list(pop=~1), data = tmp)
+# gardengrowth4.diam <- gamm(diam_50cm~s(aet.td),random = list(pop=~1), data = tmp)
+# gardengrowth5.diam <- gamm(diam_50cm~s(cwd.td),random = list(pop=~1), data = tmp)
+# AIC(gardengrowth1.diam,gardengrowth2.diam,gardengrowth3.diam,gardengrowth4.diam,gardengrowth5.diam)
+# gam.check(gardengrowth1.diam$gam)
+# CWD is best climate variable for 50cm diam, but shows very similar patterns
+# both PET and CWD show hump shaped relationships with growth peaking at substantially drier sites
+# however, we have a bigger problem with large outliers in diam
+
+
 
 
 
@@ -1953,7 +1987,24 @@ if(save.figures==T){
 
 
 
+#______________________________________________________________________________
+########### ** FIG#: trait-trait correlation exploration ################
+#______________________________________________________________________________
 
+plot(mleafsize~mkstem,all.ind[which(all.ind$site=="W"),], col=pop, pch=1)
+points(W_leafsize~W_kstem, all.pop.wide, pch=16, col=pop, cex=1.2)
+summary(lm(mleafsize~mkstem+ pop, all.ind[which(all.ind$site=="W"),]))
+summary(lmer(mleafsize~mkstem+ (1|pop), all.ind[which(all.ind$site=="W"),]))
+
+plot(mleafsize~mkstem,all.ind[which(all.ind$site=="H"),], col=pop, pch=1)
+points(H_leafsize~H_kstem, all.pop.wide, pch=16, col=pop, cex=1.2)
+summary(lm(mleafsize~mkstem+ pop, all.ind[which(all.ind$site=="H"),]))
+summary(lmer(mleafsize~mkstem+ (1|pop), all.ind[which(all.ind$site=="H"),]))
+
+plot(mkleaf~mkstem,all.ind[which(all.ind$site=="W"),], col=pop, pch=1)
+points(W_kleaf~W_kstem, all.pop.wide, pch=16, col=pop, cex=1.2)
+summary(lm(mkleaf~mkstem+ pop, all.ind[which(all.ind$site=="W"),]))
+summary(lmer(mkleaf~mkstem+ (1|pop), all.ind[which(all.ind$site=="W"),]))
 
 
 #______________________________________________________________________________
@@ -2056,6 +2107,8 @@ siteinfo.clean <- data.frame("Site"=siteinfo$Code, siteinfo.round)
 siteinfo.clean$elevation[which(siteinfo.clean$Site=="HREC")] <- 270 # pulled elevation for the common garden from Google Earth
 write.csv(siteinfo.clean, paste0(results.dir,"/TableS1_SiteCharacteristics.csv"))
 
+
+
 #______________________________________________________________________
 ######## ** FIG S1: Map #################
 #______________________________________________________________________
@@ -2075,22 +2128,29 @@ plotlocs$label.Lon[6] <- -119.9
 plotlocs$label.Lat <- plotlocs$Lat.dd+.24
 plotlocs$label.Lat[4] <- plotlocs$Lat.dd[4]-0.24
 plotlocs$label.Lat[5] <- plotlocs$Lat.dd[5]+.15
+oakPicture<-readPNG(source="Data/BlueOakPicture.png")
+
 #jpeg(filename="figures/FIG1_SamplingMap_v1.jpg",width =5, height=5, units = "in", res = 600)
-quartz(width=3.8,height=5)
+quartz(width=3.8,height=4.5)
 #par(mar=c(0,0,0,0))
 CA <- maps::map('state', region = c('california'), col="black") 
-
-
-points(latitude~longitude, qudo[which(qudo$latitude>33.5),], pch=16, col=mypallight[1])
-legend('topright',legend = c("herbarium sample", 'common garden','source pops'), pch=c(16,17,16), col = c(mypallight[1],"black","black"),pt.bg=mypal[1], pt.cex = c(1,1.5,1), bty="n")
+t <- maps::map.scale(x=-123.5, y=33.9,ratio=F,srt=45)
+maps::map.axes()
+mtext("Latitude (°)",side=2, line=2.3)
+mtext("Longitude (°)",side=1, line=2.3)
+points(latitude~longitude, qudo[which(qudo$latitude>33.5),], pch=16, col="lightgrey")#mypallight[1])
+legend('topright',legend = c("herbarium sample", 'common garden','source pops'), pch=c(16,17,16), col = c("lightgrey","black","black"),pt.bg=mypal[1], pt.cex = c(1,1.5,1), bty="n", cex=.8)
 #points(gardenlocs.latlon)
-points(sampledlocs[which(popclim$Garden_pop %in% c(1,3,15,16,18,22,26))], pch=16, cex=.8, col="black")#mypal[4])
+#points(sampledlocs[which(popclim$Garden_pop %in% c(1,3,15,16,18,22,26))], pch=16, cex=.8, col="black")#mypal[4])
+points(Lat.dd~Lon.dd, plotlocs, pch=16, cex=1, col=factor(Code))
 text(x=plotlocs$label.Lon
      ,y=plotlocs$label.Lat
      ,labels = popclim$Code[which(popclim$Garden_pop %in% c(1,3,15,16,18,22,26))]
      ,cex=.7)
 # text(garden.sampledlocs.latlon, labels=gardens.sampled$Garden_pop)
 points(sampledlocs[which(popclim$Code =="HREC")], pch=17,col="black", bg=mypal[1], cex=1.6)
+rasterImage(oakPicture,xleft = -117.5, ybottom = 37.5, xright=-118+3.75, ytop=37+3.75*(540/720), interpolate = T)
+mtext("a)", side=3, line=0.3, adj=0)
 # add a north arrow
 #narrow <- sp::layout.north.arrow(type=1)
 # shift coordinates to be bottom left corner
@@ -2104,11 +2164,38 @@ points(sampledlocs[which(popclim$Code =="HREC")], pch=17,col="black", bg=mypal[1
 #dev.off()
 
 if(save.figures==T){
-  quartz.save(file=paste0(results.dir,"/Fig_Map_v2.pdf"), type="pdf")
+  quartz.save(file=paste0(results.dir,"/Fig_Map_v3.pdf"), type="pdf")
 }
 
 
+### Panel b) Garden Height:
+quartz(width=3.2,height=4.5)
+par(mfrow=c(2,1), mgp=c(2,.6,0), mar=c(3,5,1,1))
 
+# fit a gam and make predictions
+tmp <- hoptrees %>% filter(height>0) %>% arrange(pet.td)
+gardengrowth.best <- gamm(height~s(pet.td),random = list(pop=~1), data = tmp)
+test <- predict(gardengrowth.best, newdata = data.frame("pet.td"=seq(from=min(tmp$pet.td),to=max(tmp$pet.td), by=1)),se.fit = T)
+
+# plot predictions ober observations
+plot(diam_50cm~pet.td, hoptrees, pch=16, col="#00000022", ylab="Garden Growth\n(height, m)", xlab="PET transfer distance (mm)")
+  # all individual heights
+points(Height~pet.td, popw, col=factor(pop.name), pch=16, cex=1.2)
+  # pop average heights for 7 focal pops
+lines(test[[1]]~seq(from=min(tmp$pet.td),to=max(tmp$pet.td), by=1), col=mypal[1], lwd=2)
+  # gam prediction
+abline(v=0, lty=2)
+  # location of the common garden
+mtext("b)", side=3, line=0.2, adj=0)
+mtext(paste0("R^2=",round(r.squaredGLMM(gardengrowth)[1],2)), side=3, line=-1.2)
+
+plot(perc_maxBAI~pet, wg, pch=16, col="#00000022", ylab="Wild Growth\n(% max BAI)", xlab="PET (mm)")
+points(perc_maxBAI~pet, wg.pop, pch=16, col=factor(Site), cex=1.2)
+mtext("c)", side=3, line=0.2, adj=0)
+
+if(save.figures==T){
+  quartz.save(file=paste0(results.dir,"/Fig_Map_Growthbc_v1.pdf"), type="pdf")
+}
 
 
 #_________________________________________________________________________________
@@ -2132,6 +2219,46 @@ if(save.figures==T){
   quartz.save(file=paste0(results.dir,"/FigS2_BAI-v-DBH_v1.pdf"), type="pdf")
 }
 
+
+
+
+#_________________________________________________________________________________
+################ ** FIG S#: Wild vs Garden Growth ################################
+#_________________________________________________________________________________
+
+# demonstrates that performance (and presumably any trait signals that are linked to performance) in the garden 
+# are not likely to be driven by maternal effects. 
+# plot(Height~perc_maxBAI, all.pop.wide, pch=16, cex=1.2, ylab='Height (m)', xlab="% max BAI\n(size-standardized)")
+# 
+# plot(Diam~DBH, all.pop.wide, pch=16, cex=1.2, ylab='Height (m)', xlab="% max BAI\n(size-standardized)")
+
+
+growthcomparison <- popw %>% select(pop, pop.name, Bio, log.Bio, Height, Diam, DBH, BAI, perc_maxBAI)
+quartz(width=3.5, height=3.5)
+par(mar=c(4,5,1,1))
+plot(Height~perc_maxBAI, growthcomparison,cex=2, col=factor(pop.name), pch=16
+     , ylab="Garden Height (m)"
+     , xlab="Wild % max BAI\n(size standardized growth)")
+legend("bottomright", legend=levels(factor(growthcomparison$pop.name))[-7], col=mypal[1:6], pch=16, cex=.8)
+if(save.figures==T){
+  quartz.save(file=paste0(results.dir,"/FigS11_Garden-v-WildGrowth_v1.pdf"), type="pdf")
+}
+
+
+#_________________________________________________________________________________
+################ ** FIG S##: Wild vs Garden Diameter ################################
+#_________________________________________________________________________________
+
+# demonstrates that there's at least some size overlap in the garden vs wild 
+hoptrees.subset <- hoptrees[which(hoptrees$pop %in% unique(all.ind$pop)),]
+
+# in the garden there's a liiitle bit of overlap in size with wild trees.
+#hist(hoptrees.subset$diam_50cm)
+#hist(hoptrees$diam_50cm)
+#hist(wg$DBH_cm, add=T, col="blue")
+
+quartz(width=4.5, height=3.5)
+ggplot(wg, aes(x=DBH_cm, col="Wild"))+geom_density() + geom_density(data=hoptrees.subset, aes(x=diam_50cm, col="Garden")) + theme_classic() + ylim(c(0,.2))
 
 
 
@@ -2593,6 +2720,49 @@ if(save.figures==T){
 
 
 
+############## Norm of Reaction Plots ###################
+
+all.pop.m$site.numeric <- as.numeric(as.factor(all.pop.m$site))
+
+quartz(width=6.5, height=6.5)
+par(mfrow=c(3,3), mar=c(3.2,4,0,0), oma=c(0,2,1,1), mgp=c(2,1,0), cex.lab=1.5 )
+traits <- c("SLA","LDMC","WD","ml_ms","Al_As","leafsize","kleaf","kstem","Ks")#,"P50stem")
+labs <- c("SLA","LDMC","WD","Ml:Ms","Al:As","Leaf size","k[leaf]","k[stem]","Ks")#,"P50")
+
+
+for (j in 1:length(traits)){
+  tr <- traits[j]
+  dataz <- all.pop.m[which(all.pop.m$variable==tr),]
+  dataz$pop.name <- factor(dataz$pop.name)
+  plot(value~site.numeric, data=dataz, type="p"
+       , xlim=c(0.75,2.25)
+       , ylim=c(min(dataz$value,na.rm=T), max(dataz$value, na.rm=T) + (max(dataz$value, na.rm=T)-min(dataz$value, na.rm=T))*0.1)
+        # make space for significance stars in y-axis
+       , pch=16, col=factor(pop.name), cex=1.5, xaxt="n", xlab="", ylab=labs[j])
+  axis(1, at=c(1,2), labels=c("Garden","Wild"))
+  #mtext(labs[j], side=3,line = 2)
+  for(i in levels(dataz$pop.name)){
+    lines(value~site.numeric, data=dataz[which(dataz$pop.name==i),], col=pop.name, lwd=1.3)
+  }
+  # add in Garden Significance
+  if(tr %in% c("SLA","leafsize")){
+    text("*", x=1,y=max(dataz$value, na.rm=T) + (max(dataz$value, na.rm=T)-min(dataz$value, na.rm=T))*0.075, cex=3)
+  }
+  # add in wild significance (all traits except Ks)
+  if(tr != "Ks"){
+    text("*", x=2,y=max(dataz$value, na.rm=T) + (max(dataz$value, na.rm=T)-min(dataz$value, na.rm=T))*0.075, cex=3)
+  }
+  
+  
+}
+
+if(save.figures==T){
+  quartz.save(file=paste0(results.dir,"/FigS10_Norm_of_Reaction_v1.pdf"), type="pdf")
+}
 
 
 
+
+plot(Height~DBH, growthcomparison)
+plot(Diam~DBH, growthcomparison)
+plot(Bio~BAI, growthcomparison)
