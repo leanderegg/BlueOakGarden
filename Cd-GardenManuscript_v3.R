@@ -83,7 +83,8 @@ save.figures <- T # whether to save figure pdfs
 #results.version <- "v230505" # full new version after code update
 #results.version <- "v230606" # manuscript revisions
 #results.version <- "v230627" # updated SI figures and Figs 2/3
-results.version <- "v240105" # updated for revision
+#results.version <- "v240105" # updated for revision
+results.version <- "v240210" # renumbered figures
 results.dir <- paste0("Results_",results.version)
 if(save.figures == T) { dir.create(results.dir)}
 
@@ -606,7 +607,7 @@ WildAOV$CV <- round(WildAOV$CV, 3)
 
 
 #______________________________________________________________________
-############### * Trait-Climate Analysis ###################
+### * Trait-Climate Analysis ###################
 #______________________________________________________________________
 
 
@@ -1570,8 +1571,106 @@ comparison$perc_wild[which(comparison$perc_wild == Inf)] <- NA
 
 
 
+
+
+
+
+
 #______________________________________________________________________
-######## ** FIG1: Var Decomp #################
+######## ** FIG 1: Map + Growth #################
+#______________________________________________________________________
+mypallight <- paste0(brewer.pal(n=8, "Dark2"), "33")
+
+
+# turn sampling locations into spatial data for plotting
+
+latlon <- sp::CRS("+proj=longlat +datum=WGS84")
+sampledlocs <- sp::SpatialPoints(coords = data.frame(popclim$Lon.dd, popclim$Lat.dd), proj4string = latlon)
+
+plotlocs <- popclim[which(popclim$Garden_pop %in% c(1,3,15,16,18,22,26)),] %>% select(Garden_pop, Code, Lon.dd, Lat.dd)
+plotlocs$label.Lon <- plotlocs$Lon.dd
+plotlocs$label.Lon[5] <- -120.9
+plotlocs$label.Lon[6] <- -119.9
+
+plotlocs$label.Lat <- plotlocs$Lat.dd+.24
+plotlocs$label.Lat[4] <- plotlocs$Lat.dd[4]-0.24
+plotlocs$label.Lat[5] <- plotlocs$Lat.dd[5]+.15
+oakPicture<-readPNG(source="Data/BlueOakPicture.png")
+
+#jpeg(filename="figures/FIG1_SamplingMap_v1.jpg",width =5, height=5, units = "in", res = 600)
+quartz(width=3.8,height=4.5)
+#par(mar=c(0,0,0,0))
+CA <- maps::map('state', region = c('california'), col="black") 
+t <- maps::map.scale(x=-123.5, y=33.9,ratio=F,srt=45)
+maps::map.axes()
+mtext("Latitude (°)",side=2, line=2.3)
+mtext("Longitude (°)",side=1, line=2.3)
+points(latitude~longitude, qudo[which(qudo$latitude>33.5),], pch=16, col="lightgrey")#mypallight[1])
+legend('topright',legend = c("herbarium sample", 'common garden','source pops'), pch=c(16,17,16), col = c("lightgrey","black","black"),pt.bg=mypal[1], pt.cex = c(1,1.5,1), bty="n", cex=.8)
+#points(gardenlocs.latlon)
+#points(sampledlocs[which(popclim$Garden_pop %in% c(1,3,15,16,18,22,26))], pch=16, cex=.8, col="black")#mypal[4])
+points(Lat.dd~Lon.dd, plotlocs, pch=16, cex=1, col=factor(Code))
+text(x=plotlocs$label.Lon
+     ,y=plotlocs$label.Lat
+     ,labels = popclim$Code[which(popclim$Garden_pop %in% c(1,3,15,16,18,22,26))]
+     ,cex=.7)
+# text(garden.sampledlocs.latlon, labels=gardens.sampled$Garden_pop)
+points(sampledlocs[which(popclim$Code =="HREC")], pch=17,col="black", bg=mypal[1], cex=1.6)
+rasterImage(oakPicture,xleft = -117.5, ybottom = 37.5, xright=-118+3.75, ytop=37+3.75*(540/720), interpolate = T)
+mtext("a)", side=3, line=0.3, adj=0)
+# add a north arrow
+#narrow <- sp::layout.north.arrow(type=1)
+# shift coordinates to be bottom left corner
+#Narrow <- maptools::elide(Narrow, shift=c(extent()))
+# #text(gardenlocs.latlon, labels=gardens$Code)
+# points(tosample.locs.latlon, pch=3, col="black")
+## -- add in water potential locations
+#points(sampledlocs[which(popclim$Code %in% wp.site$Site)], pch=15, cex=1, col=4)
+#legend('topright',legend = c("herbarium sample", 'common garden','source pops', 'water potentials'), pch=c(16,24,15, 3), col = c(mypallight[1],"black",mypal[4], "black"),pt.bg=mypal[1], pt.cex = c(1,1.5,1), bty="n")
+#legend('topright',legend = c("herbarium sample", 'sampled sites'), pch=c(16,15), col = c(mypallight[1],4),pt.bg=mypal[1], pt.cex = c(1,1), bty="n")
+#dev.off()
+
+if(save.figures==T){
+  quartz.save(file=paste0(results.dir,"/Fig1_Map_v3.pdf"), type="pdf")
+}
+
+
+### Panel b) Garden Height:
+quartz(width=3.2,height=4.5)
+par(mfrow=c(2,1), mgp=c(2,.6,0), mar=c(3,5,1,1))
+
+# fit a gam and make predictions
+tmp <- hoptrees %>% filter(height>0) %>% arrange(pet.td)
+gardengrowth.best <- gamm(height~s(pet.td),random = list(pop=~1), data = tmp)
+test <- predict(gardengrowth.best, newdata = data.frame("pet.td"=seq(from=min(tmp$pet.td),to=max(tmp$pet.td), by=1)),se.fit = T)
+
+# plot predictions ober observations
+plot(diam_50cm~pet.td, hoptrees, pch=16, col="#00000022", ylab="Garden Growth\n(height, m)", xlab="PET transfer distance (mm)")
+# all individual heights
+points(Height~pet.td, popw, col=factor(pop.name), pch=16, cex=1.2)
+# pop average heights for 7 focal pops
+lines(test[[1]]~seq(from=min(tmp$pet.td),to=max(tmp$pet.td), by=1), col=mypal[1], lwd=2)
+# gam prediction
+abline(v=0, lty=2)
+# location of the common garden
+mtext("b)", side=3, line=0.2, adj=0)
+mtext(paste0("R^2=",round(r.squaredGLMM(gardengrowth)[1],2)), side=3, line=-1.2)
+
+plot(perc_maxBAI~pet, wg, pch=16, col="#00000022", ylab="Wild Growth\n(% max BAI)", xlab="PET (mm)")
+points(perc_maxBAI~pet, wg.pop, pch=16, col=factor(Site), cex=1.2)
+mtext("c)", side=3, line=0.2, adj=0)
+
+if(save.figures==T){
+  quartz.save(file=paste0(results.dir,"/Fig1_Map_Growthbc_v1.pdf"), type="pdf")
+}
+
+
+
+
+
+
+#______________________________________________________________________
+######## ** FIG 2: Var Decomp #################
 #______________________________________________________________________
 
 ## set color choices
@@ -1621,7 +1720,7 @@ colchoices <- c(1,2,4,3,6)
 # }
 # 
 # #_________________
-# ####### Fig 1 continued: second bar plot for 3 traits without within-canopy ######
+# ####### **... Fig 1 continued: second bar plot for 3 traits without within-canopy ######
 # #_________________
 # 
 # colchoices <- c(1,2,4,3,6)
@@ -1704,12 +1803,14 @@ axis(1,at=p,labels= c("SLA","LDMC","WD","Ml:Ms","Al:As","Leaf Size","k[leaf]","k
 #dev.off()
 palette(mypal)
 if(save.figures==T){
-  quartz.save(file=paste0(results.dir,"/Fig1_VarainceDecomp_scaled_combined_v1.pdf"),type = "pdf" )
+  quartz.save(file=paste0(results.dir,"/Fig2_VarainceDecomp_scaled_combined_v1.pdf"),type = "pdf" )
 }
 
 
+
+
 #________________________________________________________________________
-############## ** FIG2: G vs G+E trait variation ###############
+############## ** FIG 3: G vs G+E trait variation ###############
 #_______________________________________________________________________
 
 
@@ -1782,7 +1883,7 @@ with(HopAOV[which(HopAOV$climsig<=0.05),], text(y=climvar*100-2.5, x= eta2*100-5
 
 #legend('topleft', legend=c("Garden","Wild"), pch=c(3,17), bty="n")
 if(save.figures==T){
-  quartz.save(file=paste0(results.dir,"/Fig2_G-vs-GE_variation_v5.pdf"), type="pdf")
+  quartz.save(file=paste0(results.dir,"/Fig3_G-vs-GE_variation_v5.pdf"), type="pdf")
 }
 
 
@@ -1794,7 +1895,7 @@ if(save.figures==T){
 
 
 #________________________________________________________________________
-########## ** FIG3: Bootstrapping variance comparison #######################
+########## ** FIG 4: Bootstrapping variance comparison #######################
 #________________________________________________________________________
 
 var.boot <- function(trait, boots=1000){
@@ -1830,32 +1931,32 @@ varcomps <- data.frame(varcomps)
 rownames(varcomps) <- vars
 #varcomps$sig
 
-
-# Showing the Wild/Garden ratio
-quartz(width=6, height=3)
-par(mar=c(5,4,1,1))
-tmp <- varcomps$Wild.50/varcomps$Hop.50
-statest <- varcomps$Wild.05/varcomps$Hop.50
-bp <- barplot(varcomps$ratio.50, las=2
-              , names.arg = c("SLA","LDMC","WD","Ml:Ms","Al:As","Leaf size","k[leaf]","k[stem]", "Ks","P50[stem]","P50[leaf]")
-              , ylab="Wild Var : Garden Var", ylim=c(0,2.9)
-              , border = c(rep("white",3), rep("black", 8)), # "white",rep("black",3))
-              , col = c(rep("lightgray",3), rep("white", 8) )) #"lightgray",rep("white",3))) #with marginal significance
-#arrows(x0=bp, y0=varcomps$ratio.10, y1=varcomps$ratio.90, lwd=4, length = 0)
-arrows(x0=bp, y0=varcomps$ratio.05, y1=varcomps$ratio.95, lwd=4, length = 0, col="darkgrey")
-#arrows(x0=bp, y0=varcomps$ratio.10, y1=varcomps$ratio.90, lwd=4, length = 0, col="darkgray")
-
-
-abline(h=1, lty=2, lwd=2)
-
-points(comparison$perc_wild[1:11]~bp, cex=2, pch=16)
-
-text(c("btw Pop\nVar", "total Var"), x=c(1.9, 7.9), y=c(.6, 2.2))
-arrows(x0=c(2.2,7.9), x1=c(2.95,9), y0=c(0.6,2.08), y1=c(0.22,1.7 ), length=.1)
-
-if(save.figures==T){
-  quartz.save(file=paste0(results.dir,"/Fig3_WvGvariance_comparison_v2.pdf"),type = "pdf")
-}
+# 
+# # Showing the Wild/Garden ratio
+# quartz(width=6, height=3)
+# par(mar=c(5,4,1,1))
+# tmp <- varcomps$Wild.50/varcomps$Hop.50
+# statest <- varcomps$Wild.05/varcomps$Hop.50
+# bp <- barplot(varcomps$ratio.50, las=2
+#               , names.arg = c("SLA","LDMC","WD","Ml:Ms","Al:As","Leaf size","k[leaf]","k[stem]", "Ks","P50[stem]","P50[leaf]")
+#               , ylab="Wild Var : Garden Var", ylim=c(0,2.9)
+#               , border = c(rep("white",3), rep("black", 8)), # "white",rep("black",3))
+#               , col = c(rep("lightgray",3), rep("white", 8) )) #"lightgray",rep("white",3))) #with marginal significance
+# #arrows(x0=bp, y0=varcomps$ratio.10, y1=varcomps$ratio.90, lwd=4, length = 0)
+# arrows(x0=bp, y0=varcomps$ratio.05, y1=varcomps$ratio.95, lwd=4, length = 0, col="darkgrey")
+# #arrows(x0=bp, y0=varcomps$ratio.10, y1=varcomps$ratio.90, lwd=4, length = 0, col="darkgray")
+# 
+# 
+# abline(h=1, lty=2, lwd=2)
+# 
+# points(comparison$perc_wild[1:11]~bp, cex=2, pch=16)
+# 
+# text(c("btw Pop\nVar", "total Var"), x=c(1.9, 7.9), y=c(.6, 2.2))
+# arrows(x0=c(2.2,7.9), x1=c(2.95,9), y0=c(0.6,2.08), y1=c(0.22,1.7 ), length=.1)
+# 
+# if(save.figures==T){
+#   quartz.save(file=paste0(results.dir,"/Fig3_WvGvariance_comparison_v2.pdf"),type = "pdf")
+# }
 
 
 ## Showing the % of Wild variance in the Garden
@@ -1881,13 +1982,14 @@ points(comparison$perc_wild[1:11]~bp, cex=2, pch=16)
 # arrows(x0=c(2.2,7.9), x1=c(2.95,9), y0=c(0.6,2.08), y1=c(0.22,1.7 ), length=.1)
 
 if(save.figures==T){
-  quartz.save(file=paste0(results.dir,"/Fig3_GvWvariance_comparison_v1.pdf"),type = "pdf")
+  quartz.save(file=paste0(results.dir,"/Fig4_GvWvariance_comparison_v1.pdf"),type = "pdf")
 }
 
 
 
+
 #_________________________________________________________________________________
-################# ** FIG4: Trait Integration correlation plots #################
+################# ** FIG 5: Trait Integration correlation plots #################
 #_________________________________________________________________________________
 
 #### . Calculate Correlations########
@@ -1951,7 +2053,7 @@ corrplot::corrplot(corAll.named, p.mat=1/pmatAll*.01, sig.level=0.1, insig="pch"
                    , type="lower", diag=F, add=F, cl.pos="n", method="ellipse", outline=F, addgrid.col = NA, tl.col="black"
 )
 if(save.figures==T){
-  quartz.save(file=paste0(results.dir,"/Fig4_Correlation_Heatmap_Hopland_v9.", type="pdf"))
+  quartz.save(file=paste0(results.dir,"/Fig5_Correlation_Heatmap_Hopland_v9.", type="pdf"))
 }
 
 
@@ -1982,33 +2084,13 @@ corrplot::corrplot(corW.named, p.mat=1/pmatW*.01, sig.level=0.1, insig="pch",pch
                    , type="lower", add=F, diag=F, cl.pos="n", tl.col="black"
                    , method="ellipse", outline = F, addgrid.col = NA)
 if(save.figures==T){
-  quartz.save(file=paste0(results.dir,"/Fig4_Correlation_Heatmap_Wild_v9.", type="pdf"))
+  quartz.save(file=paste0(results.dir,"/Fig5_Correlation_Heatmap_Wild_v9.", type="pdf"))
 }
 
 
 
 #______________________________________________________________________________
-########### ** FIG#: trait-trait correlation exploration ################
-#______________________________________________________________________________
-
-plot(mleafsize~mkstem,all.ind[which(all.ind$site=="W"),], col=pop, pch=1)
-points(W_leafsize~W_kstem, all.pop.wide, pch=16, col=pop, cex=1.2)
-summary(lm(mleafsize~mkstem+ pop, all.ind[which(all.ind$site=="W"),]))
-summary(lmer(mleafsize~mkstem+ (1|pop), all.ind[which(all.ind$site=="W"),]))
-
-plot(mleafsize~mkstem,all.ind[which(all.ind$site=="H"),], col=pop, pch=1)
-points(H_leafsize~H_kstem, all.pop.wide, pch=16, col=pop, cex=1.2)
-summary(lm(mleafsize~mkstem+ pop, all.ind[which(all.ind$site=="H"),]))
-summary(lmer(mleafsize~mkstem+ (1|pop), all.ind[which(all.ind$site=="H"),]))
-
-plot(mkleaf~mkstem,all.ind[which(all.ind$site=="W"),], col=pop, pch=1)
-points(W_kleaf~W_kstem, all.pop.wide, pch=16, col=pop, cex=1.2)
-summary(lm(mkleaf~mkstem+ pop, all.ind[which(all.ind$site=="W"),]))
-summary(lmer(mkleaf~mkstem+ (1|pop), all.ind[which(all.ind$site=="W"),]))
-
-
-#______________________________________________________________________________
-########### ** FIG5: Bootstrapping Trait-Trait correlations ################
+########### ** FIG 6: Bootstrapping Trait-Trait correlations ################
 #______________________________________________________________________________
 
 
@@ -2016,7 +2098,7 @@ summary(lmer(mkleaf~mkstem+ (1|pop), all.ind[which(all.ind$site=="W"),]))
 # Doing 10000 bootstrap samples from Wild vs Garden trait-trait correlations
 W.H.test <- function(trait1, trait2, boots=1000, sig.type="alpha"){
   corrW <- corrH <- rep(0, boots)
-  set.seed(42)
+  set.seed(42) # set seed to make answer repeatable
   
   for(i in 1:boots){
     # only bootstrap to the smallest dataset size to control for different sample sizes
@@ -2047,9 +2129,9 @@ hwcomprevscale <- hwcomp
 for(i in 1:length(traitz)){
   if(i < length(traitz)){
     for(j in (i+1):length(traitz)){
-      hwcomp[j,i] <- W.H.test(traitz[i], traitz[j], boots=1000)
+      hwcomp[j,i] <- W.H.test(traitz[i], traitz[j], boots=5000)
       # create a version scaled so that alpha <0.05 = 1 and >0.2 = 0
-      hwcomprevscale[j,i] <- W.H.test(traitz[i], traitz[j], boots=1000, sig.type = "rev.scaled")
+      hwcomprevscale[j,i] <- W.H.test(traitz[i], traitz[j], boots=5000, sig.type = "rev.scaled")
     }
   }  
 }
@@ -2082,7 +2164,7 @@ corrplot::corrplot(hwcomprevscale, p.mat=NULL, sig.level=0.04, insig="pch",pch=1
 
 
 if(save.figures==T){
-  quartz.save(file=paste0(results.dir,"/Fig5_Correlation_SigFig_v5.pdf"), type="pdf")
+  quartz.save(file=paste0(results.dir,"/Fig6_Correlation_SigFig_v5.pdf"), type="pdf")
 }
 
 
@@ -2109,97 +2191,8 @@ write.csv(siteinfo.clean, paste0(results.dir,"/TableS1_SiteCharacteristics.csv")
 
 
 
-#______________________________________________________________________
-######## ** FIG S1: Map #################
-#______________________________________________________________________
-mypallight <- paste0(brewer.pal(n=8, "Dark2"), "33")
-
-
-# turn sampling locations into spatial data for plotting
-
-latlon <- sp::CRS("+proj=longlat +datum=WGS84")
-sampledlocs <- sp::SpatialPoints(coords = data.frame(popclim$Lon.dd, popclim$Lat.dd), proj4string = latlon)
-
-plotlocs <- popclim[which(popclim$Garden_pop %in% c(1,3,15,16,18,22,26)),] %>% select(Garden_pop, Code, Lon.dd, Lat.dd)
-plotlocs$label.Lon <- plotlocs$Lon.dd
-plotlocs$label.Lon[5] <- -120.9
-plotlocs$label.Lon[6] <- -119.9
-
-plotlocs$label.Lat <- plotlocs$Lat.dd+.24
-plotlocs$label.Lat[4] <- plotlocs$Lat.dd[4]-0.24
-plotlocs$label.Lat[5] <- plotlocs$Lat.dd[5]+.15
-oakPicture<-readPNG(source="Data/BlueOakPicture.png")
-
-#jpeg(filename="figures/FIG1_SamplingMap_v1.jpg",width =5, height=5, units = "in", res = 600)
-quartz(width=3.8,height=4.5)
-#par(mar=c(0,0,0,0))
-CA <- maps::map('state', region = c('california'), col="black") 
-t <- maps::map.scale(x=-123.5, y=33.9,ratio=F,srt=45)
-maps::map.axes()
-mtext("Latitude (°)",side=2, line=2.3)
-mtext("Longitude (°)",side=1, line=2.3)
-points(latitude~longitude, qudo[which(qudo$latitude>33.5),], pch=16, col="lightgrey")#mypallight[1])
-legend('topright',legend = c("herbarium sample", 'common garden','source pops'), pch=c(16,17,16), col = c("lightgrey","black","black"),pt.bg=mypal[1], pt.cex = c(1,1.5,1), bty="n", cex=.8)
-#points(gardenlocs.latlon)
-#points(sampledlocs[which(popclim$Garden_pop %in% c(1,3,15,16,18,22,26))], pch=16, cex=.8, col="black")#mypal[4])
-points(Lat.dd~Lon.dd, plotlocs, pch=16, cex=1, col=factor(Code))
-text(x=plotlocs$label.Lon
-     ,y=plotlocs$label.Lat
-     ,labels = popclim$Code[which(popclim$Garden_pop %in% c(1,3,15,16,18,22,26))]
-     ,cex=.7)
-# text(garden.sampledlocs.latlon, labels=gardens.sampled$Garden_pop)
-points(sampledlocs[which(popclim$Code =="HREC")], pch=17,col="black", bg=mypal[1], cex=1.6)
-rasterImage(oakPicture,xleft = -117.5, ybottom = 37.5, xright=-118+3.75, ytop=37+3.75*(540/720), interpolate = T)
-mtext("a)", side=3, line=0.3, adj=0)
-# add a north arrow
-#narrow <- sp::layout.north.arrow(type=1)
-# shift coordinates to be bottom left corner
-#Narrow <- maptools::elide(Narrow, shift=c(extent()))
-# #text(gardenlocs.latlon, labels=gardens$Code)
-# points(tosample.locs.latlon, pch=3, col="black")
-## -- add in water potential locations
-#points(sampledlocs[which(popclim$Code %in% wp.site$Site)], pch=15, cex=1, col=4)
-#legend('topright',legend = c("herbarium sample", 'common garden','source pops', 'water potentials'), pch=c(16,24,15, 3), col = c(mypallight[1],"black",mypal[4], "black"),pt.bg=mypal[1], pt.cex = c(1,1.5,1), bty="n")
-#legend('topright',legend = c("herbarium sample", 'sampled sites'), pch=c(16,15), col = c(mypallight[1],4),pt.bg=mypal[1], pt.cex = c(1,1), bty="n")
-#dev.off()
-
-if(save.figures==T){
-  quartz.save(file=paste0(results.dir,"/Fig_Map_v3.pdf"), type="pdf")
-}
-
-
-### Panel b) Garden Height:
-quartz(width=3.2,height=4.5)
-par(mfrow=c(2,1), mgp=c(2,.6,0), mar=c(3,5,1,1))
-
-# fit a gam and make predictions
-tmp <- hoptrees %>% filter(height>0) %>% arrange(pet.td)
-gardengrowth.best <- gamm(height~s(pet.td),random = list(pop=~1), data = tmp)
-test <- predict(gardengrowth.best, newdata = data.frame("pet.td"=seq(from=min(tmp$pet.td),to=max(tmp$pet.td), by=1)),se.fit = T)
-
-# plot predictions ober observations
-plot(diam_50cm~pet.td, hoptrees, pch=16, col="#00000022", ylab="Garden Growth\n(height, m)", xlab="PET transfer distance (mm)")
-  # all individual heights
-points(Height~pet.td, popw, col=factor(pop.name), pch=16, cex=1.2)
-  # pop average heights for 7 focal pops
-lines(test[[1]]~seq(from=min(tmp$pet.td),to=max(tmp$pet.td), by=1), col=mypal[1], lwd=2)
-  # gam prediction
-abline(v=0, lty=2)
-  # location of the common garden
-mtext("b)", side=3, line=0.2, adj=0)
-mtext(paste0("R^2=",round(r.squaredGLMM(gardengrowth)[1],2)), side=3, line=-1.2)
-
-plot(perc_maxBAI~pet, wg, pch=16, col="#00000022", ylab="Wild Growth\n(% max BAI)", xlab="PET (mm)")
-points(perc_maxBAI~pet, wg.pop, pch=16, col=factor(Site), cex=1.2)
-mtext("c)", side=3, line=0.2, adj=0)
-
-if(save.figures==T){
-  quartz.save(file=paste0(results.dir,"/Fig_Map_Growthbc_v1.pdf"), type="pdf")
-}
-
-
 #_________________________________________________________________________________
-################# ** FIG S2: BAI standardization to size #################
+################# ** FIG S1: BAI standardization to size #################
 #_________________________________________________________________________________
 
 quartz(width=4, height=4)
@@ -2216,14 +2209,14 @@ abline(rq(BAI_cm2~DBH_cm, wildgrowth,tau=.9),col="blue")
 # }
 legend('topleft', legend=c("6 study sites", "5 additional sites"), pch=c(21,16), col=c("black","grey"), pt.bg = "gray")
 if(save.figures==T){
-  quartz.save(file=paste0(results.dir,"/FigS2_BAI-v-DBH_v1.pdf"), type="pdf")
+  quartz.save(file=paste0(results.dir,"/FigS1_BAI-v-DBH_v1.pdf"), type="pdf")
 }
 
 
 
 
 #_________________________________________________________________________________
-################ ** FIG S#: Wild vs Garden Growth ################################
+################ ** FIG S2: Wild vs Garden Growth ################################
 #_________________________________________________________________________________
 
 # demonstrates that performance (and presumably any trait signals that are linked to performance) in the garden 
@@ -2241,24 +2234,10 @@ plot(Height~perc_maxBAI, growthcomparison,cex=2, col=factor(pop.name), pch=16
      , xlab="Wild % max BAI\n(size standardized growth)")
 legend("bottomright", legend=levels(factor(growthcomparison$pop.name))[-7], col=mypal[1:6], pch=16, cex=.8)
 if(save.figures==T){
-  quartz.save(file=paste0(results.dir,"/FigS11_Garden-v-WildGrowth_v1.pdf"), type="pdf")
+  quartz.save(file=paste0(results.dir,"/FigS2_Garden-v-WildGrowth_v1.pdf"), type="pdf")
 }
 
 
-#_________________________________________________________________________________
-################ ** FIG S##: Wild vs Garden Diameter ################################
-#_________________________________________________________________________________
-
-# demonstrates that there's at least some size overlap in the garden vs wild 
-hoptrees.subset <- hoptrees[which(hoptrees$pop %in% unique(all.ind$pop)),]
-
-# in the garden there's a liiitle bit of overlap in size with wild trees.
-#hist(hoptrees.subset$diam_50cm)
-#hist(hoptrees$diam_50cm)
-#hist(wg$DBH_cm, add=T, col="blue")
-
-quartz(width=4.5, height=3.5)
-ggplot(wg, aes(x=DBH_cm, col="Wild"))+geom_density() + geom_density(data=hoptrees.subset, aes(x=diam_50cm, col="Garden")) + theme_classic() + ylim(c(0,.2))
 
 
 
@@ -2427,8 +2406,55 @@ if(save.figures==T){
 
 
 
+
+
 #_________________________________________________________________________________
-################# ** FIG S5: Wild vs Garden pop trait means #################
+################# ** FIG S5: Norm of Reaction Plots #################
+#_________________________________________________________________________________
+
+
+all.pop.m$site.numeric <- as.numeric(as.factor(all.pop.m$site))
+
+quartz(width=6.5, height=6.5)
+par(mfrow=c(3,3), mar=c(3.2,4,0,0), oma=c(0,2,1,1), mgp=c(2,1,0), cex.lab=1.5 )
+traits <- c("SLA","LDMC","WD","ml_ms","Al_As","leafsize","kleaf","kstem","Ks")#,"P50stem")
+labs <- c("SLA","LDMC","WD","Ml:Ms","Al:As","Leaf size","k[leaf]","k[stem]","Ks")#,"P50")
+
+
+for (j in 1:length(traits)){
+  tr <- traits[j]
+  dataz <- all.pop.m[which(all.pop.m$variable==tr),]
+  dataz$pop.name <- factor(dataz$pop.name)
+  plot(value~site.numeric, data=dataz, type="p"
+       , xlim=c(0.75,2.25)
+       , ylim=c(min(dataz$value,na.rm=T), max(dataz$value, na.rm=T) + (max(dataz$value, na.rm=T)-min(dataz$value, na.rm=T))*0.1)
+       # make space for significance stars in y-axis
+       , pch=16, col=factor(pop.name), cex=1.5, xaxt="n", xlab="", ylab=labs[j])
+  axis(1, at=c(1,2), labels=c("Garden","Wild"))
+  #mtext(labs[j], side=3,line = 2)
+  for(i in levels(dataz$pop.name)){
+    lines(value~site.numeric, data=dataz[which(dataz$pop.name==i),], col=pop.name, lwd=1.3)
+  }
+  # add in Garden Significance
+  if(tr %in% c("SLA","leafsize")){
+    text("*", x=1,y=max(dataz$value, na.rm=T) + (max(dataz$value, na.rm=T)-min(dataz$value, na.rm=T))*0.075, cex=3)
+  }
+  # add in wild significance (all traits except Ks)
+  if(tr != "Ks"){
+    text("*", x=2,y=max(dataz$value, na.rm=T) + (max(dataz$value, na.rm=T)-min(dataz$value, na.rm=T))*0.075, cex=3)
+  }
+  
+  
+}
+
+if(save.figures==T){
+  quartz.save(file=paste0(results.dir,"/FigS5_Norm_of_Reaction_v1.pdf"), type="pdf")
+}
+
+
+
+#_________________________________________________________________________________
+################# ** FIG S6: Wild vs Garden pop trait means #################
 #_________________________________________________________________________________
 
 
@@ -2477,7 +2503,7 @@ for(i in 1:9){
 }
 
 if(save.figures==T){
-  quartz.save(file=paste0(results.dir,"/FigS5_Garden-v-Wild_TraitValues_v4.pdf"), type="pdf")
+  quartz.save(file=paste0(results.dir,"/FigS6_Garden-v-Wild_TraitValues_v4.pdf"), type="pdf")
 }
 
 
@@ -2491,7 +2517,7 @@ if(save.figures==T){
 
 
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-########### ** FIG S6: Supplemental Leaf size vs number on Al_As ** #####################
+########### ** FIG S7: Supplemental Leaf size vs number on Al_As ** #####################
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 quartz(width=6, height=3.2)
@@ -2530,7 +2556,7 @@ mtext(paste("R2=",round(mW$rsquare,2)),side=3,adj=1, col=2)
 
 
 if(save.figures==T){
-  quartz.save(file=paste0(results.dir,"/FigS6_LeafSizevsLeafNum-Al_As_v2.pdf"), type="pdf")
+  quartz.save(file=paste0(results.dir,"/FigS7_LeafSizevsLeafNum-Al_As_v2.pdf"), type="pdf")
 }
 
 
@@ -2538,7 +2564,7 @@ if(save.figures==T){
 
 
 #_________________________________________________________________________________
-################# ** FIG S7&S8: Population Average Trait-Growth relationships #################
+################# ** FIG S8&S9: Population Average Trait-Growth relationships #################
 #_________________________________________________________________________________
 
 ### Loop through each trait and plot with error bars
@@ -2623,7 +2649,7 @@ for(i in 1:9){
 }
 
 if(save.figures==T){
-  quartz.save(file=paste0(results.dir,"/FigS7_Trait-Growth_GardenVolume_v1.pdf"),type = "pdf")
+  quartz.save(file=paste0(results.dir,"/FigS8_Trait-Growth_GardenVolume_v1.pdf"),type = "pdf")
 }
 
 
@@ -2669,7 +2695,7 @@ for(i in 1:9){
 }
 
 if(save.figures==T){
-  quartz.save(file=paste0(results.dir,"/FigS8_Trait-Growth_Wild_v1.pdf"),type = "pdf")
+  quartz.save(file=paste0(results.dir,"/FigS9_Trait-Growth_Wild_v1.pdf"),type = "pdf")
 }
 
 
@@ -2677,7 +2703,7 @@ if(save.figures==T){
 
 
 #_______________________________________________________________________
-#################### ** FIG S9: Supplemental Safety-Efficiency Tradeoff ##############
+#################### ** FIG S10: Supplemental Safety-Efficiency Tradeoff ##############
 #_______________________________________________________________________
 
 # visualize whether there is any tradeoff between 
@@ -2711,7 +2737,7 @@ legend("topleft",legend = c("Garden","Wild"), col=c(1,2), pch=16, cex=.8, bty='n
 
 
 if(save.figures==T){
-  quartz.save(file=paste0(results.dir,"/Fig9_SafetyEfficiencyTradeoff_v1.pdf"), type="pdf")
+  quartz.save(file=paste0(results.dir,"/Fig10_SafetyEfficiencyTradeoff_v1.pdf"), type="pdf")
 }
 
 
@@ -2720,45 +2746,49 @@ if(save.figures==T){
 
 
 
-############## Norm of Reaction Plots ###################
-
-all.pop.m$site.numeric <- as.numeric(as.factor(all.pop.m$site))
-
-quartz(width=6.5, height=6.5)
-par(mfrow=c(3,3), mar=c(3.2,4,0,0), oma=c(0,2,1,1), mgp=c(2,1,0), cex.lab=1.5 )
-traits <- c("SLA","LDMC","WD","ml_ms","Al_As","leafsize","kleaf","kstem","Ks")#,"P50stem")
-labs <- c("SLA","LDMC","WD","Ml:Ms","Al:As","Leaf size","k[leaf]","k[stem]","Ks")#,"P50")
 
 
-for (j in 1:length(traits)){
-  tr <- traits[j]
-  dataz <- all.pop.m[which(all.pop.m$variable==tr),]
-  dataz$pop.name <- factor(dataz$pop.name)
-  plot(value~site.numeric, data=dataz, type="p"
-       , xlim=c(0.75,2.25)
-       , ylim=c(min(dataz$value,na.rm=T), max(dataz$value, na.rm=T) + (max(dataz$value, na.rm=T)-min(dataz$value, na.rm=T))*0.1)
-        # make space for significance stars in y-axis
-       , pch=16, col=factor(pop.name), cex=1.5, xaxt="n", xlab="", ylab=labs[j])
-  axis(1, at=c(1,2), labels=c("Garden","Wild"))
-  #mtext(labs[j], side=3,line = 2)
-  for(i in levels(dataz$pop.name)){
-    lines(value~site.numeric, data=dataz[which(dataz$pop.name==i),], col=pop.name, lwd=1.3)
-  }
-  # add in Garden Significance
-  if(tr %in% c("SLA","leafsize")){
-    text("*", x=1,y=max(dataz$value, na.rm=T) + (max(dataz$value, na.rm=T)-min(dataz$value, na.rm=T))*0.075, cex=3)
-  }
-  # add in wild significance (all traits except Ks)
-  if(tr != "Ks"){
-    text("*", x=2,y=max(dataz$value, na.rm=T) + (max(dataz$value, na.rm=T)-min(dataz$value, na.rm=T))*0.075, cex=3)
-  }
-  
-  
-}
 
-if(save.figures==T){
-  quartz.save(file=paste0(results.dir,"/FigS10_Norm_of_Reaction_v1.pdf"), type="pdf")
-}
+######### Exploratory code #####################
+#______________________________________________________________________________
+########### ** FIG#: trait-trait correlation exploration ################
+#______________________________________________________________________________
+
+plot(mleafsize~mkstem,all.ind[which(all.ind$site=="W"),], col=pop, pch=1)
+points(W_leafsize~W_kstem, all.pop.wide, pch=16, col=pop, cex=1.2)
+summary(lm(mleafsize~mkstem+ pop, all.ind[which(all.ind$site=="W"),]))
+summary(lmer(mleafsize~mkstem+ (1|pop), all.ind[which(all.ind$site=="W"),]))
+
+plot(mleafsize~mkstem,all.ind[which(all.ind$site=="H"),], col=pop, pch=1)
+points(H_leafsize~H_kstem, all.pop.wide, pch=16, col=pop, cex=1.2)
+summary(lm(mleafsize~mkstem+ pop, all.ind[which(all.ind$site=="H"),]))
+summary(lmer(mleafsize~mkstem+ (1|pop), all.ind[which(all.ind$site=="H"),]))
+
+plot(mkleaf~mkstem,all.ind[which(all.ind$site=="W"),], col=pop, pch=1)
+points(W_kleaf~W_kstem, all.pop.wide, pch=16, col=pop, cex=1.2)
+summary(lm(mkleaf~mkstem+ pop, all.ind[which(all.ind$site=="W"),]))
+summary(lmer(mkleaf~mkstem+ (1|pop), all.ind[which(all.ind$site=="W"),]))
+
+
+
+
+#_________________________________________________________________________________
+################ ** FIG S##: Wild vs Garden Diameter ################################
+#_________________________________________________________________________________
+
+# demonstrates that there's at least some size overlap in the garden vs wild 
+hoptrees.subset <- hoptrees[which(hoptrees$pop %in% unique(all.ind$pop)),]
+
+# in the garden there's a liiitle bit of overlap in size with wild trees.
+#hist(hoptrees.subset$diam_50cm)
+#hist(hoptrees$diam_50cm)
+#hist(wg$DBH_cm, add=T, col="blue")
+
+quartz(width=4.5, height=3.5)
+ggplot(wg, aes(x=DBH_cm, col="Wild"))+geom_density() + geom_density(data=hoptrees.subset, aes(x=diam_50cm, col="Garden")) + theme_classic() + ylim(c(0,.2))
+
+
+
 
 
 
