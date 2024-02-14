@@ -2089,89 +2089,6 @@ if(save.figures==T){
 
 
 
-#______________________________________________________________________________
-########### ** FIG 6: Bootstrapping Trait-Trait correlations ################
-#______________________________________________________________________________
-
-
-
-# Doing 10000 bootstrap samples from Wild vs Garden trait-trait correlations
-W.H.test <- function(trait1, trait2, boots=1000, sig.type="alpha"){
-  corrW <- corrH <- rep(0, boots)
-  set.seed(42) # set seed to make answer repeatable
-  
-  for(i in 1:boots){
-    # only bootstrap to the smallest dataset size to control for different sample sizes
-    tosamp <- min(length(which(complete.cases(Hop.ind[,c(trait1,trait2)])==T)), length(which(complete.cases(Wild.ind[,c(trait1,trait2)])==T)))
-    corrW[i] <- cor(Wild.ind[which(complete.cases(Wild.ind[,c(trait1,trait2)])==T),c(trait1,trait2)][sample(1:length(which(complete.cases(Wild.ind[,c(trait1,trait2)])==T)), tosamp, TRUE),])[1,2]
-    corrH[i] <- cor(Hop.ind[which(complete.cases(Hop.ind[,c(trait1,trait2)])==T),c(trait1,trait2)][sample(1:length(which(complete.cases(Hop.ind[,c(trait1,trait2)])==T)), tosamp, TRUE),])[1,2]
-  }
-  diffs <- corrH - corrW
-  # store the significance, ns = alpha >0.2, with alpha < 0.2, alpha <0.1, and alpha <0.05 as possibilities
-  sig <-0.3
-  if(quantile(diffs, 0.1)>0 | quantile(diffs,0.9)<0) sig <- 0.2
-  if(quantile(diffs, 0.05)>0 | quantile(diffs,0.95)<0) sig <- 0.1
-  if(quantile(diffs, 0.025)>0 | quantile(diffs,0.975)<0) sig <- 0.05
-  # store a reverse scaled significance [0,1] for corrplotting with alpha <0.5 =>1
-  revsig <-0
-  if(quantile(diffs, 0.1)>0 | quantile(diffs,0.9)<0) revsig <- 0.33
-  if(quantile(diffs, 0.05)>0 | quantile(diffs,0.95)<0) revsig <- 0.66
-  if(quantile(diffs, 0.025)>0 | quantile(diffs,0.975)<0) revsig <- 1
-  if(sig.type=="alpha") return(sig)
-  if(sig.type=="rev.scaled") return(revsig)
-}
-
-traitz <- varsW
-hwcomp <- matrix(NA, nrow=length(traitz), ncol=length(traitz))
-colnames(hwcomp) <- traitz
-rownames(hwcomp) <- traitz
-hwcomprevscale <- hwcomp
-for(i in 1:length(traitz)){
-  if(i < length(traitz)){
-    for(j in (i+1):length(traitz)){
-      hwcomp[j,i] <- W.H.test(traitz[i], traitz[j], boots=5000)
-      # create a version scaled so that alpha <0.05 = 1 and >0.2 = 0
-      hwcomprevscale[j,i] <- W.H.test(traitz[i], traitz[j], boots=5000, sig.type = "rev.scaled")
-    }
-  }  
-}
-
-
-
-#colnames(hwcomprevscale) <- c("SLA","LDMC","WD","Ml:Ms","Al:As","Leaf size","k[leaf]","k[stem]", "Ks","P50[stem]","P50[leaf]")
-#rownames(hwcomprevscale)  <-c("SLA","LDMC","WD","Ml_Ms","Al:As","Leaf size","k[leaf]","k[stem]", "Ks","P50[stem]","P50[leaf]")
-# with reordered rows (v3)
-# colnames(hwcomprevscale) <- c("Leaf size","Al:As","Ml:Ms", "k[leaf]","k[stem]", "Ks","SLA","LDMC","WD", "P50[stem]","P50[leaf]")
-# rownames(hwcomprevscale) <- c("Leaf size","Al:As","Ml:Ms","k[leaf]","k[stem]", "Ks","SLA","LDMC","WD", "P50[stem]","P50[leaf]")
-# moving Ml:As down (v4)
-colnames(hwcomprevscale) <- c("Leaf size","Al:As","k[leaf]","k[stem]", "Ks","Ml:Ms","SLA","LDMC","WD", "P50[stem]","P50[leaf]")
-rownames(hwcomprevscale) <- c("Leaf size","Al:As","k[leaf]","k[stem]", "Ks","Ml:Ms","SLA","LDMC","WD", "P50[stem]","P50[leaf]")
-
-corcolors <- corrplot::COL2(n = 7) # pull the colors for making a legend
-
-# # get rid of the alpha<0.2 correlation changes (v5)
-# hwcomprevscale_trm <- hwcomprevscale
-# hwcomprevscale_trm[which(hwcomprevscale_trm<0.6)] <- 0
-
-quartz(width=4, height=4)
-corrplot::corrplot(hwcomprevscale, p.mat=NULL, sig.level=0.04, insig="pch",pch=16, pch.cex=.8
-                   , type="lower", add=F, diag=F, cl.pos="n", tl.col="black"
-                   , method="color", outline = T, addgrid.col = F)
-# v4 w 0.2 alpha cutoff
- legend("topright", bty="n", legend=c("alpha <0.2","alpha <0.1", "alpha <0.05"), pch=15, pt.cex = 2, col=corcolors[5:7], xpd=NA)
-# v5 w/out .2, hwcomprevscaled_trm
-# legend("topright", bty="n", legend=c("alpha <0.1", "alpha <0.05"), pch=15, pt.cex = 2, col=corcolors[6:7], xpd=NA)
-
-
-if(save.figures==T){
-  quartz.save(file=paste0(results.dir,"/Fig6_Correlation_SigFig_v5.pdf"), type="pdf")
-}
-
-
-
-
-
-
 
 
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -2562,9 +2479,92 @@ if(save.figures==T){
 
 
 
+#______________________________________________________________________________
+########### ** FIG S8: Bootstrapping Trait-Trait correlations ################
+#______________________________________________________________________________
+
+
+
+# Doing 10000 bootstrap samples from Wild vs Garden trait-trait correlations
+W.H.test <- function(trait1, trait2, boots=1000, sig.type="alpha"){
+  corrW <- corrH <- rep(0, boots)
+  set.seed(42) # set seed to make answer repeatable
+  
+  for(i in 1:boots){
+    # only bootstrap to the smallest dataset size to control for different sample sizes
+    tosamp <- min(length(which(complete.cases(Hop.ind[,c(trait1,trait2)])==T)), length(which(complete.cases(Wild.ind[,c(trait1,trait2)])==T)))
+    corrW[i] <- cor(Wild.ind[which(complete.cases(Wild.ind[,c(trait1,trait2)])==T),c(trait1,trait2)][sample(1:length(which(complete.cases(Wild.ind[,c(trait1,trait2)])==T)), tosamp, TRUE),])[1,2]
+    corrH[i] <- cor(Hop.ind[which(complete.cases(Hop.ind[,c(trait1,trait2)])==T),c(trait1,trait2)][sample(1:length(which(complete.cases(Hop.ind[,c(trait1,trait2)])==T)), tosamp, TRUE),])[1,2]
+  }
+  diffs <- corrH - corrW
+  # store the significance, ns = alpha >0.2, with alpha < 0.2, alpha <0.1, and alpha <0.05 as possibilities
+  sig <-0.3
+  if(quantile(diffs, 0.1)>0 | quantile(diffs,0.9)<0) sig <- 0.2
+  if(quantile(diffs, 0.05)>0 | quantile(diffs,0.95)<0) sig <- 0.1
+  if(quantile(diffs, 0.025)>0 | quantile(diffs,0.975)<0) sig <- 0.05
+  # store a reverse scaled significance [0,1] for corrplotting with alpha <0.5 =>1
+  revsig <-0
+  if(quantile(diffs, 0.1)>0 | quantile(diffs,0.9)<0) revsig <- 0.33
+  if(quantile(diffs, 0.05)>0 | quantile(diffs,0.95)<0) revsig <- 0.66
+  if(quantile(diffs, 0.025)>0 | quantile(diffs,0.975)<0) revsig <- 1
+  if(sig.type=="alpha") return(sig)
+  if(sig.type=="rev.scaled") return(revsig)
+}
+
+traitz <- varsW
+hwcomp <- matrix(NA, nrow=length(traitz), ncol=length(traitz))
+colnames(hwcomp) <- traitz
+rownames(hwcomp) <- traitz
+hwcomprevscale <- hwcomp
+for(i in 1:length(traitz)){
+  if(i < length(traitz)){
+    for(j in (i+1):length(traitz)){
+      hwcomp[j,i] <- W.H.test(traitz[i], traitz[j], boots=5000)
+      # create a version scaled so that alpha <0.05 = 1 and >0.2 = 0
+      hwcomprevscale[j,i] <- W.H.test(traitz[i], traitz[j], boots=5000, sig.type = "rev.scaled")
+    }
+  }  
+}
+
+
+
+#colnames(hwcomprevscale) <- c("SLA","LDMC","WD","Ml:Ms","Al:As","Leaf size","k[leaf]","k[stem]", "Ks","P50[stem]","P50[leaf]")
+#rownames(hwcomprevscale)  <-c("SLA","LDMC","WD","Ml_Ms","Al:As","Leaf size","k[leaf]","k[stem]", "Ks","P50[stem]","P50[leaf]")
+# with reordered rows (v3)
+# colnames(hwcomprevscale) <- c("Leaf size","Al:As","Ml:Ms", "k[leaf]","k[stem]", "Ks","SLA","LDMC","WD", "P50[stem]","P50[leaf]")
+# rownames(hwcomprevscale) <- c("Leaf size","Al:As","Ml:Ms","k[leaf]","k[stem]", "Ks","SLA","LDMC","WD", "P50[stem]","P50[leaf]")
+# moving Ml:As down (v4)
+colnames(hwcomprevscale) <- c("Leaf size","Al:As","k[leaf]","k[stem]", "Ks","Ml:Ms","SLA","LDMC","WD", "P50[stem]","P50[leaf]")
+rownames(hwcomprevscale) <- c("Leaf size","Al:As","k[leaf]","k[stem]", "Ks","Ml:Ms","SLA","LDMC","WD", "P50[stem]","P50[leaf]")
+
+corcolors <- corrplot::COL2(n = 7) # pull the colors for making a legend
+
+# # get rid of the alpha<0.2 correlation changes (v5)
+# hwcomprevscale_trm <- hwcomprevscale
+# hwcomprevscale_trm[which(hwcomprevscale_trm<0.6)] <- 0
+
+quartz(width=4, height=4)
+corrplot::corrplot(hwcomprevscale, p.mat=NULL, sig.level=0.04, insig="pch",pch=16, pch.cex=.8
+                   , type="lower", add=F, diag=F, cl.pos="n", tl.col="black"
+                   , method="color", outline = T, addgrid.col = F)
+# v4 w 0.2 alpha cutoff
+legend("topright", bty="n", legend=c("alpha <0.2","alpha <0.1", "alpha <0.05"), pch=15, pt.cex = 2, col=corcolors[5:7], xpd=NA)
+# v5 w/out .2, hwcomprevscaled_trm
+# legend("topright", bty="n", legend=c("alpha <0.1", "alpha <0.05"), pch=15, pt.cex = 2, col=corcolors[6:7], xpd=NA)
+
+
+if(save.figures==T){
+  quartz.save(file=paste0(results.dir,"/FigS8_Correlation_SigFig_v5.pdf"), type="pdf")
+}
+
+
+
+
+
+
 
 #_________________________________________________________________________________
-################# ** FIG S8&S9: Population Average Trait-Growth relationships #################
+################# ** FIG S9&S10: Population Average Trait-Growth relationships #################
 #_________________________________________________________________________________
 
 ### Loop through each trait and plot with error bars
@@ -2606,7 +2606,7 @@ for(i in 1:9){
 }
 
 if(save.figures==T){
-  quartz.save(file=paste0(results.dir,"/FigS7_Trait-Growth_GardenHeight_v1.pdf"),type = "pdf")
+  quartz.save(file=paste0(results.dir,"/FigS9_Trait-Growth_GardenHeight_v1.pdf"),type = "pdf")
 }
 
 
@@ -2649,7 +2649,7 @@ for(i in 1:9){
 }
 
 if(save.figures==T){
-  quartz.save(file=paste0(results.dir,"/FigS8_Trait-Growth_GardenVolume_v1.pdf"),type = "pdf")
+  quartz.save(file=paste0(results.dir,"/FigS9_Trait-Growth_GardenVolume_v1.pdf"),type = "pdf")
 }
 
 
@@ -2695,7 +2695,7 @@ for(i in 1:9){
 }
 
 if(save.figures==T){
-  quartz.save(file=paste0(results.dir,"/FigS9_Trait-Growth_Wild_v1.pdf"),type = "pdf")
+  quartz.save(file=paste0(results.dir,"/FigS10_Trait-Growth_Wild_v1.pdf"),type = "pdf")
 }
 
 
@@ -2703,7 +2703,7 @@ if(save.figures==T){
 
 
 #_______________________________________________________________________
-#################### ** FIG S10: Supplemental Safety-Efficiency Tradeoff ##############
+#################### ** FIG S11: Supplemental Safety-Efficiency Tradeoff ##############
 #_______________________________________________________________________
 
 # visualize whether there is any tradeoff between 
@@ -2737,7 +2737,7 @@ legend("topleft",legend = c("Garden","Wild"), col=c(1,2), pch=16, cex=.8, bty='n
 
 
 if(save.figures==T){
-  quartz.save(file=paste0(results.dir,"/Fig10_SafetyEfficiencyTradeoff_v1.pdf"), type="pdf")
+  quartz.save(file=paste0(results.dir,"/Fig11_SafetyEfficiencyTradeoff_v1.pdf"), type="pdf")
 }
 
 
@@ -2768,8 +2768,16 @@ plot(mkleaf~mkstem,all.ind[which(all.ind$site=="W"),], col=pop, pch=1)
 points(W_kleaf~W_kstem, all.pop.wide, pch=16, col=pop, cex=1.2)
 summary(lm(mkleaf~mkstem+ pop, all.ind[which(all.ind$site=="W"),]))
 summary(lmer(mkleaf~mkstem+ (1|pop), all.ind[which(all.ind$site=="W"),]))
+plot(mkleaf~mkstem,all.ind[which(all.ind$site=="H"),], col=pop, pch=1)
+points(H_kleaf~H_kstem, all.pop.wide, pch=16, col=pop, cex=1.2)
 
 
+plot(mml_ms~mKs,all.ind[which(all.ind$site=="W"),], col=pop, pch=1)
+points(W_ml_ms~W_Ks, all.pop.wide, pch=16, col=pop, cex=1.2)
+summary(lm(mkleaf~mkstem+ pop, all.ind[which(all.ind$site=="W"),]))
+summary(lmer(mkleaf~mkstem+ (1|pop), all.ind[which(all.ind$site=="W"),]))
+plot(mml_ms~mKs,all.ind[which(all.ind$site=="H"),], col=pop, pch=1)
+points(H_ml_ms~H_Ks, all.pop.wide, pch=16, col=pop, cex=1.2)
 
 
 #_________________________________________________________________________________
