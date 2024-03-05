@@ -1000,8 +1000,7 @@ HopAOV$climsig[which(HopAOV$Trait=="WD")] <- round(summary(HopmodWD)$coefficient
 #WildmodWD <- lm(mWD~tmx.2018ds, Wild.ind)
 # plot(WildmodWD)
 (WildWD<- best.mermod("mWD",dataz=Wild.ind, clim.vars = clim.variablesW))
-# with linear model,tmn.2018ds is vaguely important but prob ns. with lmer, null is best
-# tmx/tmin/ppt all marginally significant
+# anomolies are best, but don't really make sense because the branches are multiple years of wood...
 WildAOV$climname[which(WildAOV$Trait=="WD")] <- WildWD$table$mod[1] # grab name of best climate variable from AIC table
 WildAOV$climDeltaAIC[which(WildAOV$Trait=="WD")] <- WildWD$deltaAIC # grab delta from AIC table
 WildmodWD <- lmer(mWD~aet.diff + (1|pop), Wild.ind, REML=T)
@@ -2331,6 +2330,14 @@ if(save.figures==T){
 
 
 all.pop.m$site.numeric <- as.numeric(as.factor(all.pop.m$site))
+# add in a column for PPT30yr with garden's climate for plotting norms of reaction
+all.pop.m$ppt.actual <- all.pop.m$ppt
+all.pop.m$ppt.actual[which(all.pop.m$site=="H")] <- popclim$ppt1951_1980[which(popclim$Code=="HOP")]
+all.pop.m$pet.actual <- all.pop.m$pet
+all.pop.m$pet.actual[which(all.pop.m$site=="H")] <- popclim$pet1951_1980[which(popclim$Code=="HOP")]
+
+
+## Plotting just 'Garden' vs 'Wild' (not true norm of reaction)
 
 quartz(width=6.5, height=6.5)
 par(mfrow=c(3,3), mar=c(3.2,4,0,0), oma=c(0,2,1,1), mgp=c(2,1,0), cex.lab=1.5 )
@@ -2368,6 +2375,91 @@ if(save.figures==T){
   quartz.save(file=paste0(results.dir,"/FigS5_Norm_of_Reaction_v1.pdf"), type="pdf")
 }
 
+
+## plotting true norm of reaction based on pop PPT
+
+quartz(width=6.5, height=6.5)
+par(mfrow=c(3,3), mar=c(3.2,4,0,0), oma=c(0,2,1,1), mgp=c(2,1,0), cex.lab=1.5 )
+traits <- c("SLA","LDMC","WD","ml_ms","Al_As","leafsize","kleaf","kstem","Ks")#,"P50stem")
+labs <- c("SLA","LDMC","WD","Ml:Ms","Al:As","Leaf size","k[leaf]","k[stem]","Ks")#,"P50")
+
+
+for (j in 1:length(traits)){
+  tr <- traits[j]
+  dataz <- all.pop.m[which(all.pop.m$variable==tr),]
+  dataz$pop.name <- factor(dataz$pop.name)
+  plot(value~ppt.actual, data=dataz, type="p"
+       , ylim=c(min(dataz$value,na.rm=T), max(dataz$value, na.rm=T) + (max(dataz$value, na.rm=T)-min(dataz$value, na.rm=T))*0.1)
+       # make space for significance stars in y-axis
+       , pch=(site.numeric-1)*15+1, col=factor(pop.name), cex=1.8, xaxt="n", xlab="", ylab=labs[j])
+  axis(1)
+  #mtext(labs[j], side=3,line = 2)
+  for(i in levels(dataz$pop.name)){
+    lines(value~ppt.actual, data=dataz[which(dataz$pop.name==i),], col=pop.name, lwd=1.3)
+  }
+  # add in Garden Significance
+  if(tr %in% c("SLA","leafsize")){
+    text("*", x=1,y=max(dataz$value, na.rm=T) + (max(dataz$value, na.rm=T)-min(dataz$value, na.rm=T))*0.075, cex=3)
+  }
+  # add in wild significance (all traits except Ks)
+  if(tr != "Ks"){
+    text("*", x=2,y=max(dataz$value, na.rm=T) + (max(dataz$value, na.rm=T)-min(dataz$value, na.rm=T))*0.075, cex=3)
+  }
+  if(tr =="ml_ms"){
+    legend("topleft", legend=levels(as.factor(all.pop.m$pop.name)), pch=16, col=1:7    )
+  }
+  if(tr=="kleaf"){legend("topleft", legend = c("W","G"), pch=c(16,1))}
+  if(tr=="kstem") {mtext("PPT[30yr] (mm)", side=1, line=3, cex=1)}
+  
+}
+
+
+if(save.figures==T){
+  quartz.save(file=paste0(results.dir,"/FigS5_TrueNorm_of_Reaction_ppt_v1.pdf"), type="pdf")
+}
+
+
+## plotting true norm of reaction based on pop PPT
+
+quartz(width=6.5, height=6.5)
+par(mfrow=c(3,3), mar=c(3.2,4,0,0), oma=c(2,2,1,1), mgp=c(2,1,0), cex.lab=1.5 )
+traits <- c("SLA","LDMC","WD","ml_ms","Al_As","leafsize","kleaf","kstem","Ks")#,"P50stem")
+labs <- c("SLA","LDMC","WD","Ml:Ms","Al:As","Leaf size","k[leaf]","k[stem]","Ks")#,"P50")
+
+
+for (j in 1:length(traits)){
+  tr <- traits[j]
+  dataz <- all.pop.m[which(all.pop.m$variable==tr),]
+  dataz$pop.name <- factor(dataz$pop.name)
+  plot(value~pet.actual, data=dataz, type="p"
+       , ylim=c(min(dataz$value,na.rm=T), max(dataz$value, na.rm=T) + (max(dataz$value, na.rm=T)-min(dataz$value, na.rm=T))*0.1)
+       # make space for significance stars in y-axis
+       , pch=(site.numeric-1)*15+1, col=factor(pop.name), cex=1.8, xaxt="n", xlab="", ylab=labs[j])
+  axis(1)
+  #mtext(labs[j], side=3,line = 2)
+  for(i in levels(dataz$pop.name)){
+    lines(value~pet.actual, data=dataz[which(dataz$pop.name==i),], col=pop.name, lwd=1.3)
+  }
+  # add in Garden Significance
+  if(tr %in% c("SLA","leafsize")){
+    text("*", x=1,y=max(dataz$value, na.rm=T) + (max(dataz$value, na.rm=T)-min(dataz$value, na.rm=T))*0.075, cex=3)
+  }
+  # add in wild significance (all traits except Ks)
+  if(tr != "Ks"){
+    text("*", x=2,y=max(dataz$value, na.rm=T) + (max(dataz$value, na.rm=T)-min(dataz$value, na.rm=T))*0.075, cex=3)
+  }
+  if(tr =="ml_ms"){
+    legend("topright", legend=levels(as.factor(all.pop.m$pop.name)), pch=16, col=1:7    )
+  }
+  if(tr=="kleaf"){legend("topright", legend = c("W","G"), pch=c(16,1))}
+  if(tr=="kstem") {mtext("PET[30yr] (mm)", side=1, line=3, cex=1)}
+}
+
+
+
+if(save.figures==T){
+  quartz.save(file=paste0(results.dir,"/FigS5_TrueNorm_of_Reaction_pet_v1.pdf"), type="pdf")
+}
 
 
 #_________________________________________________________________________________
