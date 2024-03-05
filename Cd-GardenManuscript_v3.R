@@ -1,18 +1,11 @@
 ######################################################
-##             Code for Anderegg et al.              ##
-##      "Plasticity drives geographic variation and trait 
+##             Code for:                            ##
+##      "Plasticity, geographic variation and trait 
 ##      coordination in blue oak drought physiology"
 ######################################################
 
-# contact: Leander DL Anderegg
-# landeregg@ucsb.edu
-
 # Analyzes hydraulic and morphological trait data from a common garden and the 7 wild source populations
 # of Quercus douglasii
-
-##### NOTE: STILL NEED Ml_Ms data from W22!!!
-
-
 
 #load packages
 library(RColorBrewer)
@@ -75,14 +68,7 @@ error_bars<- function(xvar, yvar, upper, lower=upper, errordata, color="black", 
 
 
 save.figures <- T # whether to save figure pdfs
-#results.version <- "v190422" 
-#results.version <- "v220817" # directory version for saving figures/results
-#results.version <- "v221218"
-#results.version <- "v230113" # updated the SLA from W22
-#results.version <- "v230418" # updated leaf size and whatnot from W22
-#results.version <- "v230505" # full new version after code update
-#results.version <- "v230606" # manuscript revisions
-#results.version <- "v230627" # updated SI figures and Figs 2/3
+
 #results.version <- "v240105" # updated for revision
 results.version <- "v240210" # renumbered figures
 results.dir <- paste0("Results_",results.version)
@@ -674,89 +660,6 @@ test.rand <- function(dataz, trait){
 }
 
 # ## select best climate predictor for Wild data using linear models
-# # if no pop random effect needed
-# best.mod <- function(trait, dataz) {
-#   modnull <- lm(get(trait)~1 ,dataz)
-#   modcwd <- lm(get(trait)~cwd, dataz)
-#   modaet <- lm(get(trait)~aet, dataz)
-#   modpet <- lm(get(trait)~pet, dataz)
-#   modppt <- lm(get(trait)~ppt, dataz)
-#   modtmn <- lm(get(trait)~tmn, dataz)
-#   modtmn.2018ds <- lm(get(trait)~tmn.2018ds, dataz)
-#   modtmx.2018ds <- lm(get(trait)~tmx.2018ds, dataz)
-#   modppt.2018ds <- lm(get(trait)~ppt.2018ds, dataz)
-#   modcwd.2018ds <- lm(get(trait)~cwd.2018ds, dataz)
-#   #modPD <- lm(get(trait)~sitePD, dataz) # field water potentials, but only for 6 sites
-#   #modMD <- lm(get(trait)~siteMD, dataz)
-#   #modE.drop <- lm(get(trait)~siteE.drop, dataz)
-#   data.frame(AICc(modnull, modcwd, modaet, modpet, modppt, modtmn, modtmn.2018ds, modtmx.2018ds, modppt.2018ds, modcwd.2018ds)
-#              , n=c(length(resid(modnull)), length(resid(modcwd)), length(resid(modaet)), length(resid(modpet)), length(resid(modppt)), length(resid(modtmn)), length(resid(modtmn.2018ds)), length(resid(modtmx.2018ds)), length(resid(modppt.2018ds)), length(resid(modcwd.2018ds))))[order(AIC(modnull, modcwd, modaet, modpet, modppt, modtmn, modtmn.2018ds,modtmx.2018ds, modppt.2018ds,modcwd.2018ds)[,2]),]
-#   
-# }
-# 
-# ## Seperate climate selection function for the garden, with only climate normals
-# best.modH <- function(trait, dataz) {
-#   modnull <- lm(get(trait)~1 ,dataz)
-#   modcwd <- lm(get(trait)~cwd, dataz)
-#   modaet <- lm(get(trait)~aet, dataz)
-#   modpet <- lm(get(trait)~pet, dataz)
-#   modppt <- lm(get(trait)~ppt, dataz)
-#   modtmn <- lm(get(trait)~tmn, dataz)
-#   #modtmn.2018ds <- lm(get(trait)~tmn.2018ds, dataz)
-#   #modtmx.2018ds <- lm(get(trait)~tmx.2018ds, dataz)
-#   #modppt.2018ds <- lm(get(trait)~ppt.2018ds, dataz)
-#   #modcwd.2018ds <- lm(get(trait)~cwd.2018ds, dataz)
-#   #modPD <- lm(get(trait)~sitePD, dataz)
-#   #modMD <- lm(get(trait)~siteMD, dataz)
-#   #modE.drop <- lm(get(trait)~siteE.drop, dataz)
-#   data.frame(AICc(modnull, modcwd, modaet, modpet, modppt, modtmn)
-#              , n=c(length(resid(modnull)), length(resid(modcwd)), length(resid(modaet)), length(resid(modpet)), length(resid(modppt)), length(resid(modtmn))))[order(AICc(modnull, modcwd, modaet, modpet, modppt, modtmn)[,2]),]
-#   
-# }
-# 
-# ## climate variable selection function with mixed models
-# # use if pop random effect needed
-# best.mermod <- function(trait, dataz) {
-#   modnull <- lmer(get(trait)~1 + (1|pop.name),dataz, REML=F)
-#   modcwd <- lmer(get(trait)~cwd+ (1|pop.name), dataz, REML=F)
-#   modaet <- lmer(get(trait)~aet+ (1|pop.name), dataz, REML=F)
-#   modpet <- lmer(get(trait)~pet+ (1|pop.name), dataz, REML=F)
-#   modppt <- lmer(get(trait)~ppt+ (1|pop.name), dataz, REML=F)
-#   modtmn <- lmer(get(trait)~tmn+ (1|pop.name), dataz, REML=F)
-#   modtmn.2018ds <- lmer(get(trait)~tmn.2018ds+ (1|pop.name), dataz, REML=F)
-#   modtmx.2018ds <- lmer(get(trait)~tmx.2018ds+ (1|pop.name), dataz, REML=F)
-#   modppt.2018ds <- lmer(get(trait)~ppt.2018ds+ (1|pop.name), dataz, REML=F)
-#   modcwd.2018ds <- lmer(get(trait)~cwd.2018ds+ (1|pop.name), dataz, REML=F)
-#   #modPD <- lmer(get(trait)~sitePD+ (1|pop.name), dataz, REML=F)
-#   #modMD <- lmer(get(trait)~siteMD+ (1|pop.name), dataz, REML=F)
-#   #modE.drop <- lmer(get(trait)~siteE.drop+ (1|pop), dataz, REML=F)
-#   data.frame(AICc(modnull, modcwd, modaet, modpet, modppt, modtmn, modtmn.2018ds, modtmx.2018ds, modppt.2018ds, modcwd.2018ds)
-#              , n=c(length(resid(modnull)), length(resid(modcwd)), length(resid(modaet)), length(resid(modpet)), length(resid(modppt)), length(resid(modtmn)), length(resid(modtmn.2018ds)), length(resid(modtmx.2018ds)), length(resid(modppt.2018ds)), length(resid(modcwd.2018ds))))[order(AICc(modnull, modcwd, modaet, modpet, modppt, modtmn, modtmn.2018ds,modtmx.2018ds, modppt.2018ds,modcwd.2018ds)[,2]),]
-#   
-# }
-# 
-# 
-# ## climate variable selection for garden with pop random effect.
-# best.mermodH <- function(trait, dataz) {
-#   modnull <- lmer(get(trait)~1 + (1|pop.name),dataz, REML=F)
-#   modcwd <- lmer(get(trait)~cwd+ (1|pop.name), dataz, REML=F)
-#   modaet <- lmer(get(trait)~aet+ (1|pop.name), dataz, REML=F)
-#   modpet <- lmer(get(trait)~pet+ (1|pop.name), dataz, REML=F)
-#   modppt <- lmer(get(trait)~ppt+ (1|pop.name), dataz, REML=F)
-#   modtmn <- lmer(get(trait)~tmn+ (1|pop.name), dataz, REML=F)
-#   #modtmn.2018ds <- lmer(get(trait)~tmn.2018ds+ (1|pop.name), dataz, REML=F)
-#   #modtmx.2018ds <- lmer(get(trait)~tmx.2018ds+ (1|pop.name), dataz, REML=F)
-#   #modppt.2018ds <- lmer(get(trait)~ppt.2018ds+ (1|pop.name), dataz, REML=F)
-#   #modcwd.2018ds <- lmer(get(trait)~cwd.2018ds+ (1|pop.name), dataz, REML=F)
-#   #modPD <- lmer(get(trait)~sitePD+ (1|pop.name), dataz, REML=F)
-#   #modMD <- lmer(get(trait)~siteMD+ (1|pop.name), dataz, REML=F)
-#   #modE.drop <- lmer(get(trait)~siteE.drop+ (1|pop), dataz, REML=F)
-#   data.frame(AICc(modnull, modcwd, modaet, modpet, modppt, modtmn)
-#              , n=c(length(resid(modnull)), length(resid(modcwd)), length(resid(modaet)), length(resid(modpet)), length(resid(modppt)), length(resid(modtmn))))[order(AICc(modnull, modcwd, modaet, modpet, modppt, modtmn)[,2]),]
-#   
-# }
-# 
-
 #___________ Newer Function _____________
 
 best.mermod <- function(trait, dataz, clim.vars) {
@@ -824,22 +727,6 @@ clim.variablesW <- c("cwd","aet","pet","ppt","tmn","cwd.2018ds","aet.2018ds","pe
 # climate variables for the garden (just climate normals)
 clim.variablesH <- c("cwd","aet","pet","ppt", "tmn")
 
-
-# 
-# best.mermod("mSLA",dataz = all.ind[which(all.ind$site=="W"),], clim.vars = clim.variables)
-# best.mermod("mLDMC",dataz = all.ind[which(all.ind$site=="W"),], clim.vars = clim.variables)
-# best.mermod("mWD",dataz = all.ind[which(all.ind$site=="W"),], clim.vars = clim.variables)
-# # diffs all good
-# best.mermod("mml_ms",dataz = all.ind[which(all.ind$site=="W"),], clim.vars = clim.variables)
-# best.mermod("mAl_As",dataz = all.ind[which(all.ind$site=="W"),], clim.vars = clim.variables)
-#   # diffs marginal
-# best.mermod("mleafsize",dataz = all.ind[which(all.ind$site=="W"),], clim.vars = clim.variables)
-# best.mermod("mkleaf",dataz = all.ind[which(all.ind$site=="W"),], clim.vars = clim.variables)
-# best.mermod("mkstem",dataz = all.ind[which(all.ind$site=="W"),], clim.vars = clim.variables)
-# best.mermod("mKs",dataz = all.ind[which(all.ind$site=="W"),], clim.vars = clim.variables)
-# best.mermod("P50stem",dataz = all.ind[which(all.ind$site=="W"),], clim.vars = clim.variables)
-# best.mermod("P50leaf",dataz = all.ind[which(all.ind$site=="W"),], clim.vars = clim.variables)
-# 
 
 #_______________________________________________________________________________
 ############ . identify best Trait-climate relationships ############################
@@ -916,26 +803,6 @@ WildAOV$climsig[which(WildAOV$Trait=="SLA")] <- round(summary(WildmodSLA)$coeffi
 
 
 ##### . LDMC #######
-# # Hopland
-# best.mod("mLDMC",dataz=Hop.ind, clim.vars = clim.variablesH)
-# # HopmodLDMC <- lm(mLDMC~pet, Hop.ind)
-# ## plot(HopmodLDMC)
-# # null
-# HopAOV$bestclim[which(HopAOV$Trait=="LDMC")] <- "none"
-# HopAOV$climvar[which(HopAOV$Trait=="LDMC")] <- 0
-# 
-# # Wild
-# # best.mod("mLDMC",dataz=Wild.ind)
-# #  WildmodLDMC <- lm(mLDMC~aet, Wild.ind)
-# # plot(WildmodLDMC)
-# best.mermod("mLDMC",dataz=Wild.ind, clim.vars = clim.variablesW)
-# 
-# # tmx/tmin/ppt all marginally significant with linear, but ns with mixed effects
-# WildAOV$bestclim[which(WildAOV$Trait=="LDMC")] <- "none" #"AET"
-# WildAOV$climvar[which(WildAOV$Trait=="LDMC")] <- 0 #r.squaredLR(WildmodLDMC)
-
-
-##### . LDMC #######
 # Hopland
 (HopLDMC <- best.mod("mLDMC",dataz=Hop.ind,clim.vars = clim.variablesH))
 HopAOV$climname[which(HopAOV$Trait=="LDMC")] <- HopLDMC$table$mod[1] # grab name of best climate variable from AIC table
@@ -961,29 +828,6 @@ WildAOV$climsig[which(WildAOV$Trait=="LDMC")] <- 1 #round(summary(WildmodLDMC)$c
 
 
 
-
-
-
-##### . WD #######
-# Hopland
-# best.mod("mWD",dataz=Hop.ind, clim.vars = clim.variablesH)
-# HopmodWD <- lm(mWD~ppt, Hop.ind)
-# # plot(HopmodWD)
-# # ppt
-# HopAOV$bestclim[which(HopAOV$Trait=="WD")] <- "PPT"
-# HopAOV$climvar[which(HopAOV$Trait=="WD")] <- r.squaredLR(HopmodWD)
-# 
-# # Wild
-# # best.mod("mWD",dataz=Wild.ind)
-# # WildmodWD <- lm(mWD~aet, Wild.ind)
-# # plot(WildmodWD)
-# best.mermod("mWD",dataz=Wild.ind, clim.vars = clim.variablesW)
-# WildmodWD <- lmer(mWD~aet.diff + (1|pop.name), Wild.ind) 
-# # qqp(ranef(WildmodWD)$pop[[1]])
-# # qqp(resid(WildmodWD))
-# # aet was sig with linear, aet.diff highly significant
-# WildAOV$bestclim[which(WildAOV$Trait=="WD")] <- "AET anomoly"
-# WildAOV$climvar[which(WildAOV$Trait=="WD")] <- r.squaredLR(WildmodWD)
 
 ##### . WD #######
 # Hopland
@@ -1015,33 +859,6 @@ WildAOV$climsig[which(WildAOV$Trait=="WD")] <- round(summary(WildmodWD)$coeffici
 
 
 ##### . ml_ms #######
-# # Hopland
-# best.mod("mml_ms",dataz=Hop.ind, clim.vars = clim.variablesH)
-# Hopmodml_ms <- lm(mml_ms~ppt, Hop.ind)
-# # plot(Hopmodml_ms)
-# # null
-# HopAOV$bestclim[which(HopAOV$Trait=="ml_ms")] <- "none"
-# HopAOV$climvar[which(HopAOV$Trait=="ml_ms")] <- 0
-# 
-# # Wild
-# best.mod("mml_ms",dataz=Wild.ind, clim.vars = clim.variablesW)
-# Wildmodml_ms <- lm(mml_ms~tmn.2018ds, Wild.ind) # ml_ms goes down with higher Tmin 2018, goes up with PPT
-# # plot(Wildmodml_ms)
-# #qqp(resid(Wildmodml_ms)) # problematic high risids, log-transform?
-# 
-# Wild.ind$log.ml_ms <- log(Wild.ind$mml_ms, base=10)
-# best.mod("log.ml_ms",dataz=Wild.ind)
-#   #but it doesn't fundamentally change any of the inferences (same order for predictors, still highly sig)
-# 
-# # Tmin and aet pretty similar (as is Tmin2018) were significant with linear model, but not mixed
-# WildAOV$bestclim[which(WildAOV$Trait=="ml_ms")] <- "winter Tmin"
-# WildAOV$climvar[which(WildAOV$Trait=="ml_ms")] <-  r.squaredLR(Wildmodml_ms)
-
-
-# insert incredible analysis
-
-
-##### . ml_ms #######
 # Hopland
 (Hopml_ms <- best.mod("mml_ms",dataz=Hop.ind,clim.vars = clim.variablesH))
 HopAOV$climname[which(HopAOV$Trait=="ml_ms")] <- Hopml_ms$table$mod[1] # grab name of best climate variable from AIC table
@@ -1065,25 +882,6 @@ WildAOV$climsig[which(WildAOV$Trait=="ml_ms")] <- round(summary(Wildmodml_ms)$co
 
 
 ##### . Al_As #######
-# # Hopland
-# best.mod("mAl_As",dataz=Hop.ind, clim.vars = clim.variablesH)
-# HopmodAl_As <- lm(mAl_As~tmn, Hop.ind)
-# # plot(HopmodAl_As)
-# # null
-# HopAOV$bestclim[which(HopAOV$Trait=="Al_As")] <- "none"
-# HopAOV$climvar[which(HopAOV$Trait=="Al_As")] <- 0
-# 
-# # Wild
-# # best.mod("mAl_As",dataz=Wild.ind)
-# # WildmodAl_As <- lm(mAl_As~tmn, Wild.ind) # Al_As goes down with higher Tmin, goes up with larger AET
-# # plot(WildmodAl_As)
-# best.mermod("mAl_As",dataz=Wild.ind, clim.vars = clim.variablesW)
-# # cwd.diff and pet.diff slighly better than null, but ns
-# #WildmodAl_As <- lmer(mAl_As~cwd.diff + (1|pop), Wild.ind)
-# 
-# WildAOV$bestclim[which(WildAOV$Trait=="Al_As")] <- "none" #"Tmin"
-# WildAOV$climvar[which(WildAOV$Trait=="Al_As")] <- 0 # r.squaredLR(WildmodAl_As)
-##### . Al_As #######
 # Hopland
 (HopAl_As <- best.mod("mAl_As",dataz=Hop.ind,clim.vars = clim.variablesH))
 HopAOV$climname[which(HopAOV$Trait=="Al_As")] <- HopAl_As$table$mod[1] # grab name of best climate variable from AIC table
@@ -1106,28 +904,6 @@ WildAOV$climsig[which(WildAOV$Trait=="Al_As")] <- round(summary(WildmodAl_As)$co
 
 
 
-##### . leafsize #######
-# # Hopland
-# best.modH("mleafsize",dataz=Hop.ind)
-# Hopmodleafsize <- lm(mleafsize~ppt, Hop.ind) #increases with ppt
-# # plot(Hopmodleafsize)
-# HopAOV$bestclim[which(HopAOV$Trait=="leafsize")] <- "PPT"
-# HopAOV$climvar[which(HopAOV$Trait=="leafsize")] <- r.squaredLR(Hopmodleafsize)
-# 
-# # Wild
-# best.mermod("mleafsize",dataz=Wild.ind[-c(2,12),]) # marginal at best with or without two large outliers
-# #Wildmodleafsize <- lmer(mleafsize~tmn.2018ds + (1|pop.name), Wild.ind[-c(2,12),])
-# #plot(Wildmodleafsize) #ns, with two large outliers
-# #qqp(resid(Wildmodleafsize))
-# # Null best, with both mermod and lm, and with and without two large outliers
-#   # visual patterns very unconvincing as well  
-# 
-# WildAOV$bestclim[which(WildAOV$Trait=="leafsize")] <- "none"
-# WildAOV$climvar[which(WildAOV$Trait=="leafsize")] <- 0
-
-
-
-# # ppt, with 2 decent large outliers. more significant without outliers
 ##### . leafsize #######
 # Hopland
 (Hopleafsize <- best.mermod("mleafsize",dataz=Hop.ind,clim.vars = clim.variablesH))
@@ -1153,28 +929,6 @@ WildAOV$climsig[which(WildAOV$Trait=="leafsize")] <- round(summary(Wildmodleafsi
 
 
 ##### . kleaf #######
-# # Hopland
-# best.modH("mkleaf",dataz=Hop.ind) 
-# Hopmodkleaf <- lm(mkleaf~tmn, Hop.ind) # delta AIC only 0.3 over null
-# #plot(Hopmodkleaf)
-# # tmn ns (p=0.11)
-# HopAOV$bestclim[which(HopAOV$Trait=="kleaf")] <- "none" #"nsTmin"
-# HopAOV$climvar[which(HopAOV$Trait=="kleaf")] <- 0 #r.squaredLR(Hopmodkleaf)
-# 
-# # Wild
-# # best.mod("mkleaf",dataz=Wild.ind)
-# # Wildmodkleaf <- lm(mkleaf~cwd.2018ds, Wild.ind) #cwd 2018ds and normal cwd best
-# #  plot(Wildmodkleaf)
-# best.mermod("mkleaf",dataz=Wild.ind)
-# Wildmodkleaf <- lmer(mkleaf~cwd.2018ds + (1|pop.name), Wild.ind) #cwd 2018ds and normal cwd best
-# # plot(Wildmodkleaf)
-# # qqp(resid(Wildmodkleaf))
-# # summary(Wildmodkleaf)
-# #cwd 2018ds and normal cwd best, but only ms
-# WildAOV$bestclim[which(WildAOV$Trait=="kleaf")] <- "winter CWD"
-# WildAOV$climvar[which(WildAOV$Trait=="kleaf")] <- r.squaredGLMM(Wildmodkleaf)[1]
-
-##### . kleaf #######
 # Hopland
 (Hopkleaf <- best.mod("mkleaf",dataz=Hop.ind,clim.vars = clim.variablesH))
 HopAOV$climname[which(HopAOV$Trait=="kleaf")] <- Hopkleaf$table$mod[1] # grab name of best climate variable from AIC table
@@ -1198,27 +952,6 @@ WildAOV$climsig[which(WildAOV$Trait=="kleaf")] <- round(summary(Wildmodkleaf)$co
 
 
 # ##### . kstem #######
-# # Hopland
-# best.modH("mkstem",dataz=Hop.ind) 
-# Hopmodkstem <- lm(mkstem~pet, Hop.ind) # deltaAIC ~0 over null
-# # plot(Hopmodkstem)
-# # pet is nonsignificant, null is next best
-# HopAOV$bestclim[which(HopAOV$Trait=="kstem")] <- "none"
-# HopAOV$climvar[which(HopAOV$Trait=="kstem")] <-0
-# 
-# # Wild
-# # best.mod("mkstem",dataz=Wild.ind)
-# # Wildmodkstem <- lm(mkstem~tmn.2018ds, Wild.ind) 
-# #  plot(Wildmodkstem)
-# best.mermod("mkstem",dataz=Wild.ind)
-# Wildmodkstem <- lmer(mkstem~tmn.2018ds + (1|pop.name), Wild.ind) 
-# #plot(Wildmodkstem)
-# #qqp(resid(Wildmodkstem))
-# #summary(Wildmodkstem)
-# #tmn.2018ds and cwd 2018ds both pretty close, higher tmn, cwd, higher Kstem, similar with lm and lmer
-# WildAOV$bestclim[which(WildAOV$Trait=="kstem")] <- "winter Tmin"
-# WildAOV$climvar[which(WildAOV$Trait=="kstem")] <- r.squaredGLMM(Wildmodkstem)[1]
-##### . kstem #######
 # Hopland
 (Hopkstem <- best.mod("mkstem",dataz=Hop.ind,clim.vars = clim.variablesH))
 HopAOV$climname[which(HopAOV$Trait=="kstem")] <- Hopkstem$table$mod[1] # grab name of best climate variable from AIC table
@@ -1243,24 +976,6 @@ WildAOV$climsig[which(WildAOV$Trait=="kstem")] <- round(summary(Wildmodkstem)$co
 
 
 ##### . Ks #######
-# # Hopland
-# best.modH("mKs",dataz=Hop.ind) 
-# #HopmodKs <- lm(mKs~tmx, Hop.ind) #null best
-# # plot(HopmodKs)
-# # null  best
-# HopAOV$bestclim[which(HopAOV$Trait=="Ks")] <- "none"
-# HopAOV$climvar[which(HopAOV$Trait=="Ks")] <-0
-# 
-# # Wild - doesnt need pop random intercept
-# best.mod("mKs",dataz=Wild.ind)
-# # WildmodKs <- lm(mKs~cwd.2018ds, Wild.ind) #null is best, slightly more significant without large outlier, but still ns
-# # plot(WildmodKs)
-# # qqp(resid(WildmodKs))
-# 
-# #null
-# WildAOV$bestclim[which(WildAOV$Trait=="Ks")] <- "none"
-# WildAOV$climvar[which(WildAOV$Trait=="Ks")] <- 0
-##### . Ks #######
 # Hopland
 (HopKs <- best.mod("mKs",dataz=Hop.ind,clim.vars = clim.variablesH))
 HopAOV$climname[which(HopAOV$Trait=="Ks")] <- HopKs$table$mod[1] # grab name of best climate variable from AIC table
@@ -1284,22 +999,6 @@ WildAOV$climsig[which(WildAOV$Trait=="Ks")] <- 1 #round(summary(WildmodKs)$coeff
 
 
 ##### . P50stem #######
-# # Hopland
-# best.modH("P50stem",dataz=Hop.ind) 
-# HopmodP50stem <- lm(P50stem~tmn, Hop.ind) #all equally bad
-# # plot(HopmodP50stem)
-# # tmn p=0.1468
-# HopAOV$bestclim[which(HopAOV$Trait=="P50stem")] <- "none"
-# HopAOV$climvar[which(HopAOV$Trait=="P50stem")] <- 0
-# 
-# # Wild
-# best.mod("P50stem",dataz=Wild.ind)
-# WildmodP50stem <- lm(P50stem~aet, Wild.ind) #aet best 
-# # plot(WildmodP50stem)# 16 is a bit of a high outlier with some leverage, but still ms without outlier
-# 
-# #aet and cwd best
-# WildAOV$bestclim[which(WildAOV$Trait=="P50stem")] <- "AET"
-# WildAOV$climvar[which(WildAOV$Trait=="P50stem")] <- r.squaredLR(WildmodP50stem) # very in line with results of Skelton et al. 2019
 ##### . P50stem #######
 # Hopland
 (HopP50stem <- best.mod("P50stem",dataz=Hop.ind,clim.vars = clim.variablesH))
@@ -1322,24 +1021,6 @@ WildAOV$climsig[which(WildAOV$Trait=="P50stem")] <- round(summary(WildmodP50stem
 
 
 
-##### . P50leaf #######
-# # Hopland
-# best.modH("P50leaf",dataz=Hop.ind) 
-# # HopmodP50leaf <- lm(P50leaf~tmn, Hop.ind) #all equally bad
-# # plot(HopmodP50stem)
-# # tmn p=0.173
-# HopAOV$bestclim[which(HopAOV$Trait=="P50leaf")] <- "none"
-# HopAOV$climvar[which(HopAOV$Trait=="P50leaf")] <- 0
-# 
-# # Wild
-# best.mod("P50leaf",dataz=Wild.ind)
-# #WildmodP50stem <- lm(P50leaf~aet, Wild.ind) #null clearly the best 
-# # plot(WildmodP50leaf)
-# 
-# #aet and cwd best
-# WildAOV$bestclim[which(WildAOV$Trait=="P50leaf")] <- "none"
-# WildAOV$climvar[which(WildAOV$Trait=="P50leaf")] <- 0
-# 
 ##### . P50leaf #######
 # Hopland
 (HopP50leaf <- best.mod("P50leaf",dataz=Hop.ind,clim.vars = clim.variablesH))
@@ -1680,130 +1361,130 @@ palette(pal.vardecomp)
 colchoices <- c(1,2,4,3,6)
 
 
-# quartz(width=5.3,height=5.4) 
-# #jpeg(file=paste0("./","/Fig_VarainceDecomp_scaled.jpg"), width=4.3, height=5.4, units="in", res=600)
-# par(mfrow=c(2,1), mar=c(1,3.6,1,3.6), mgp=c(2.3,1,0), oma=c(3.6,0,3,0), cex.lab=1.4, cex.axis=1.1)
-# p<-barplot(height=as.matrix(scaledvariancesHop)
-#            , beside=F, names.arg=rep(NA, times=9)
-#            , col = pal.vardecomp
-#            , legend.text= c("Btw Pops", "Btw Trees", "Within Tree")
-#            , args.legend=list(bty="n", x=11.5, y=1.5, xpd=NA, cex=1,xjust=0.5, ncol=4)
-#            , ylab="% Var in Garden", las=3
-#            , xlim=c(1.1,18.2), width=1, space=1)#,  yaxt="n" # ylim=c(0,0.008),
-# axis(4,at=c(0,.4,.8), labels = c(0,.4,.6)*round(max(HopAOV$CV, na.rm=T),1), xpd=NA,col="#333333", col.axis="#333333")
-# mtext("Trait CV", side = 4, line =2.3)
-# barplot(height=as.matrix(t(HopAOV$CV[-c(10,11,12)]/max(HopAOV$CV[-c(10,11,12)], na.rm=T))), add=T
-#         , space=c(4,3,3,3,3,3,3,3,3), width=.5, names.arg=rep(NA, times=9))
-# #text(x=p,y=colSums(scaledvariancesWD)+.001, labels=climsens, srt=90, xpd=T, font=c(2,2,1,1,2,2,2,1))
-# mtext(text = "a)", side=3, adj=-0.12, line=.2)
-# 
-# p<-barplot(height=as.matrix(scaledvariancesWild)
-#            , beside=F, names.arg=rep(NA, times=9)
-#            , col = pal.vardecomp
-#            , legend.text= NULL
-#            , args.legend=list(bty="n", x=mean(c(1.1,16)), y=1.5, xpd=NA, cex=1,xjust=0.5, ncol=4)
-#            , ylab="% Var in Wild", las=3
-#            , xlim=c(1.1,18.2), width=1, space=1)#,  yaxt="n" # ylim=c(0,0.008),
-# axis(4,at=c(0,.4,.8), labels = c(0,.4,.6)*round(max(WildAOV$CV, na.rm=T),1), xpd=NA,col="#333333", col.axis="#333333")
-# mtext("Trait CV", side = 4, line =2.3)
-# barplot(height=as.matrix(t(WildAOV$CV[-c(10,11,12)]/max(WildAOV$CV[-c(10,11,12)], na.rm=T))), add=T
-#         , space=c(4,3,3,3,3,3,3,3,3), width=.5, names.arg=rep(NA, times=9))
-# #text(x=p,y=colSums(scaledvariancesWD)+.001, labels=climsens, srt=90, xpd=T, font=c(2,2,1,1,2,2,2,1))
-# mtext(text = "b)", side=3, adj=-0.12, line=.2)
-# 
-# axis(1,at=p,labels= c("SLA","LDMC","WD","Ml:Ms","Al:As","Leaf Size","k[leaf]","k[stem]","K[s]"),font=1, cex.axis = 1.1, tick=F,las=2, mgp=c(2,.2,0))
-# #dev.off()
-# palette(mypal)
-# if(save.figures==T){
-#   quartz.save(file=paste0(results.dir,"/Fig1_VarainceDecomp_scaled_v5.pdf"),type = "pdf" )
-# }
-# 
-# #_________________
-# ####### **... Fig 1 continued: second bar plot for 3 traits without within-canopy ######
-# #_________________
-# 
-# colchoices <- c(1,2,4,3,6)
-# quartz(width=3,height=5.4) 
-# #jpeg(file=paste0("./","/Fig_VarainceDecomp_scaled.jpg"), width=4.3, height=5.4, units="in", res=600)
-# par(mfrow=c(2,1), mar=c(1,3.6,1,1), mgp=c(2.3,1,0), oma=c(3.6,0,3,0), cex.lab=1.4, cex.axis=1.1)
-# p<-barplot(height=as.matrix(scaledvariancesHop2)
-#            , beside=F, names.arg=rep(NA, times=3)
-#            , col = pal.vardecomp
-#            #, legend.text= c("Btw Pops", "Btw Trees", "Within Tree")
-#            #, args.legend=list(bty="n", x=11.5, y=1.5, xpd=NA, cex=1,xjust=0.5, ncol=4)
-#            , ylab="% Var in Garden", las=3
-#            , xlim=c(1.1,6.6), width=1, space=1)#,  yaxt="n" # ylim=c(0,0.008),
-# #axis(4,at=c(0,.4,.8), labels = c(0,.4,.6)*round(max(HopAOV$CV, na.rm=T),1), xpd=NA,col="#333333", col.axis="#333333")
-# #mtext("Trait CV", side = 4, line =2.3)
-# #barplot(height=as.matrix(t(HopAOV$CV[-c(10,11)]/max(HopAOV$CV, na.rm=T))), add=T
-# #        , space=c(4,3,3,3,3,3,3,3,3), width=.5, names.arg=rep(NA, times=9))
-# #text(x=p,y=colSums(scaledvariancesWD)+.001, labels=climsens, srt=90, xpd=T, font=c(2,2,1,1,2,2,2,1))
-# #mtext(text = "a)", side=3, adj=-0.12, line=.2)
-# 
-# p<-barplot(height=as.matrix(scaledvariancesWild2)
-#            , beside=F, names.arg=rep(NA, times=3)
-#            , col = pal.vardecomp
-#            , legend.text= NULL
-#            , args.legend=list(bty="n", x=mean(c(1.1,16)), y=1.5, xpd=NA, cex=1,xjust=0.5, ncol=4)
-#            , ylab="% Var in Wild", las=3
-#            , xlim=c(1.1,6.6), width=1, space=1)#,  yaxt="n" # ylim=c(0,0.008),
-# #axis(4,at=c(0,.4,.8), labels = c(0,.4,.6)*round(max(WildAOV$CV, na.rm=T),1), xpd=NA,col="#333333", col.axis="#333333")
-# #mtext("Trait CV", side = 4, line =2.3)
-# #barplot(height=as.matrix(t(WildAOV$CV[-c(10,11)]/max(WildAOV$CV, na.rm=T))), add=T
-# #        , space=c(4,3,3,3,3,3,3,3,3), width=.5, names.arg=rep(NA, times=9))
-# #text(x=p,y=colSums(scaledvariancesWD)+.001, labels=climsens, srt=90, xpd=T, font=c(2,2,1,1,2,2,2,1))
-# #mtext(text = "b)", side=3, adj=-0.12, line=.2)
-# 
-# axis(1,at=p,labels= c("P50stem","P50leaf","Growth"),font=1, cex.axis = 1.1, tick=F,las=2, mgp=c(2,.2,0))
-# #dev.off()
-# palette(mypal)
-# if(save.figures==T){
-#   quartz.save(file=paste0(results.dir,"/Fig1_VarainceDecompp50Growth_scaled_v1.pdf"),type = "pdf" )
-# }
-
-
-#_________________
-###### Fig 1 V2: all bars together ##
-#_________________
-
-quartz(width=6.3,height=5.4) 
+quartz(width=5.3,height=5.4)
 #jpeg(file=paste0("./","/Fig_VarainceDecomp_scaled.jpg"), width=4.3, height=5.4, units="in", res=600)
 par(mfrow=c(2,1), mar=c(1,3.6,1,3.6), mgp=c(2.3,1,0), oma=c(3.6,0,3,0), cex.lab=1.4, cex.axis=1.1)
-p<-barplot(height=as.matrix(scaledvariancesHop.comb)
-           , beside=F, names.arg=rep(NA, times=12)
+p<-barplot(height=as.matrix(scaledvariancesHop)
+           , beside=F, names.arg=rep(NA, times=9)
            , col = pal.vardecomp
            , legend.text= c("Btw Pops", "Btw Trees", "Within Tree")
            , args.legend=list(bty="n", x=11.5, y=1.5, xpd=NA, cex=1,xjust=0.5, ncol=4)
            , ylab="% Var in Garden", las=3
-           , xlim=c(1.1,24.2), width=1, space=1)#,  yaxt="n" # ylim=c(0,0.008),
+           , xlim=c(1.1,18.2), width=1, space=1)#,  yaxt="n" # ylim=c(0,0.008),
 axis(4,at=c(0,.4,.8), labels = c(0,.4,.6)*round(max(HopAOV$CV, na.rm=T),1), xpd=NA,col="#333333", col.axis="#333333")
 mtext("Trait CV", side = 4, line =2.3)
-barplot(height=as.matrix(t(HopAOV$CV/max(HopAOV$CV, na.rm=T))), add=T
-        , space=c(4,3,3,3,3,3,3,3,3,3,3,3), width=.5, names.arg=rep(NA, times=12))
+barplot(height=as.matrix(t(HopAOV$CV[-c(10,11,12)]/max(HopAOV$CV[-c(10,11,12)], na.rm=T))), add=T
+        , space=c(4,3,3,3,3,3,3,3,3), width=.5, names.arg=rep(NA, times=9))
 #text(x=p,y=colSums(scaledvariancesWD)+.001, labels=climsens, srt=90, xpd=T, font=c(2,2,1,1,2,2,2,1))
 mtext(text = "a)", side=3, adj=-0.12, line=.2)
 
-p<-barplot(height=as.matrix(scaledvariancesWild.comb)
-           , beside=F, names.arg=rep(NA, times=12)
+p<-barplot(height=as.matrix(scaledvariancesWild)
+           , beside=F, names.arg=rep(NA, times=9)
            , col = pal.vardecomp
            , legend.text= NULL
            , args.legend=list(bty="n", x=mean(c(1.1,16)), y=1.5, xpd=NA, cex=1,xjust=0.5, ncol=4)
            , ylab="% Var in Wild", las=3
-           , xlim=c(1.1,24.2), width=1, space=1)#,  yaxt="n" # ylim=c(0,0.008),
+           , xlim=c(1.1,18.2), width=1, space=1)#,  yaxt="n" # ylim=c(0,0.008),
 axis(4,at=c(0,.4,.8), labels = c(0,.4,.6)*round(max(WildAOV$CV, na.rm=T),1), xpd=NA,col="#333333", col.axis="#333333")
 mtext("Trait CV", side = 4, line =2.3)
-barplot(height=as.matrix(t(WildAOV$CV/max(WildAOV$CV, na.rm=T))), add=T
-        , space=c(4,3,3,3,3,3,3,3,3,3,3,3), width=.5, names.arg=rep(NA, times=12))
+barplot(height=as.matrix(t(WildAOV$CV[-c(10,11,12)]/max(WildAOV$CV[-c(10,11,12)], na.rm=T))), add=T
+        , space=c(4,3,3,3,3,3,3,3,3), width=.5, names.arg=rep(NA, times=9))
 #text(x=p,y=colSums(scaledvariancesWD)+.001, labels=climsens, srt=90, xpd=T, font=c(2,2,1,1,2,2,2,1))
 mtext(text = "b)", side=3, adj=-0.12, line=.2)
 
-axis(1,at=p,labels= c("SLA","LDMC","WD","Ml:Ms","Al:As","Leaf Size","k[leaf]","k[stem]","K[s]","P50[stem]","P50[leaf]","Growth")
-     ,font=1, cex.axis = 1.1, tick=F,las=2, mgp=c(2,.2,0))
+axis(1,at=p,labels= c("SLA","LDMC","WD","Ml:Ms","Al:As","Leaf Size","k[leaf]","k[stem]","K[s]"),font=1, cex.axis = 1.1, tick=F,las=2, mgp=c(2,.2,0))
 #dev.off()
 palette(mypal)
 if(save.figures==T){
-  quartz.save(file=paste0(results.dir,"/Fig2_VarainceDecomp_scaled_combined_v1.pdf"),type = "pdf" )
+  quartz.save(file=paste0(results.dir,"/Fig1_VarainceDecomp_scaled_v5.pdf"),type = "pdf" )
 }
+
+#_________________
+####### **... Fig 1 continued: second bar plot for 3 traits without within-canopy ######
+#_________________
+
+colchoices <- c(1,2,4,3,6)
+quartz(width=3,height=5.4)
+#jpeg(file=paste0("./","/Fig_VarainceDecomp_scaled.jpg"), width=4.3, height=5.4, units="in", res=600)
+par(mfrow=c(2,1), mar=c(1,3.6,1,1), mgp=c(2.3,1,0), oma=c(3.6,0,3,0), cex.lab=1.4, cex.axis=1.1)
+p<-barplot(height=as.matrix(scaledvariancesHop2)
+           , beside=F, names.arg=rep(NA, times=3)
+           , col = pal.vardecomp
+           #, legend.text= c("Btw Pops", "Btw Trees", "Within Tree")
+           #, args.legend=list(bty="n", x=11.5, y=1.5, xpd=NA, cex=1,xjust=0.5, ncol=4)
+           , ylab="% Var in Garden", las=3
+           , xlim=c(1.1,6.6), width=1, space=1)#,  yaxt="n" # ylim=c(0,0.008),
+#axis(4,at=c(0,.4,.8), labels = c(0,.4,.6)*round(max(HopAOV$CV, na.rm=T),1), xpd=NA,col="#333333", col.axis="#333333")
+#mtext("Trait CV", side = 4, line =2.3)
+#barplot(height=as.matrix(t(HopAOV$CV[-c(10,11)]/max(HopAOV$CV, na.rm=T))), add=T
+#        , space=c(4,3,3,3,3,3,3,3,3), width=.5, names.arg=rep(NA, times=9))
+#text(x=p,y=colSums(scaledvariancesWD)+.001, labels=climsens, srt=90, xpd=T, font=c(2,2,1,1,2,2,2,1))
+#mtext(text = "a)", side=3, adj=-0.12, line=.2)
+
+p<-barplot(height=as.matrix(scaledvariancesWild2)
+           , beside=F, names.arg=rep(NA, times=3)
+           , col = pal.vardecomp
+           , legend.text= NULL
+           , args.legend=list(bty="n", x=mean(c(1.1,16)), y=1.5, xpd=NA, cex=1,xjust=0.5, ncol=4)
+           , ylab="% Var in Wild", las=3
+           , xlim=c(1.1,6.6), width=1, space=1)#,  yaxt="n" # ylim=c(0,0.008),
+#axis(4,at=c(0,.4,.8), labels = c(0,.4,.6)*round(max(WildAOV$CV, na.rm=T),1), xpd=NA,col="#333333", col.axis="#333333")
+#mtext("Trait CV", side = 4, line =2.3)
+#barplot(height=as.matrix(t(WildAOV$CV[-c(10,11)]/max(WildAOV$CV, na.rm=T))), add=T
+#        , space=c(4,3,3,3,3,3,3,3,3), width=.5, names.arg=rep(NA, times=9))
+#text(x=p,y=colSums(scaledvariancesWD)+.001, labels=climsens, srt=90, xpd=T, font=c(2,2,1,1,2,2,2,1))
+#mtext(text = "b)", side=3, adj=-0.12, line=.2)
+
+axis(1,at=p,labels= c("P50stem","P50leaf","Growth"),font=1, cex.axis = 1.1, tick=F,las=2, mgp=c(2,.2,0))
+#dev.off()
+palette(mypal)
+if(save.figures==T){
+  quartz.save(file=paste0(results.dir,"/Fig1_VarainceDecompp50Growth_scaled_v1.pdf"),type = "pdf" )
+}
+
+# 
+# #_________________
+# ###### Fig 1 V2: all bars together ##
+# #_________________
+# 
+# quartz(width=6.3,height=5.4) 
+# #jpeg(file=paste0("./","/Fig_VarainceDecomp_scaled.jpg"), width=4.3, height=5.4, units="in", res=600)
+# par(mfrow=c(2,1), mar=c(1,3.6,1,3.6), mgp=c(2.3,1,0), oma=c(3.6,0,3,0), cex.lab=1.4, cex.axis=1.1)
+# p<-barplot(height=as.matrix(scaledvariancesHop.comb)
+#            , beside=F, names.arg=rep(NA, times=12)
+#            , col = pal.vardecomp
+#            , legend.text= c("Btw Pops", "Btw Trees", "Within Tree")
+#            , args.legend=list(bty="n", x=11.5, y=1.5, xpd=NA, cex=1,xjust=0.5, ncol=4)
+#            , ylab="% Var in Garden", las=3
+#            , xlim=c(1.1,24.2), width=1, space=1)#,  yaxt="n" # ylim=c(0,0.008),
+# axis(4,at=c(0,.4,.8), labels = c(0,.4,.6)*round(max(HopAOV$CV, na.rm=T),1), xpd=NA,col="#333333", col.axis="#333333")
+# mtext("Trait CV", side = 4, line =2.3)
+# barplot(height=as.matrix(t(HopAOV$CV/max(HopAOV$CV, na.rm=T))), add=T
+#         , space=c(4,3,3,3,3,3,3,3,3,3,3,3), width=.5, names.arg=rep(NA, times=12))
+# #text(x=p,y=colSums(scaledvariancesWD)+.001, labels=climsens, srt=90, xpd=T, font=c(2,2,1,1,2,2,2,1))
+# mtext(text = "a)", side=3, adj=-0.12, line=.2)
+# 
+# p<-barplot(height=as.matrix(scaledvariancesWild.comb)
+#            , beside=F, names.arg=rep(NA, times=12)
+#            , col = pal.vardecomp
+#            , legend.text= NULL
+#            , args.legend=list(bty="n", x=mean(c(1.1,16)), y=1.5, xpd=NA, cex=1,xjust=0.5, ncol=4)
+#            , ylab="% Var in Wild", las=3
+#            , xlim=c(1.1,24.2), width=1, space=1)#,  yaxt="n" # ylim=c(0,0.008),
+# axis(4,at=c(0,.4,.8), labels = c(0,.4,.6)*round(max(WildAOV$CV, na.rm=T),1), xpd=NA,col="#333333", col.axis="#333333")
+# mtext("Trait CV", side = 4, line =2.3)
+# barplot(height=as.matrix(t(WildAOV$CV/max(WildAOV$CV, na.rm=T))), add=T
+#         , space=c(4,3,3,3,3,3,3,3,3,3,3,3), width=.5, names.arg=rep(NA, times=12))
+# #text(x=p,y=colSums(scaledvariancesWD)+.001, labels=climsens, srt=90, xpd=T, font=c(2,2,1,1,2,2,2,1))
+# mtext(text = "b)", side=3, adj=-0.12, line=.2)
+# 
+# axis(1,at=p,labels= c("SLA","LDMC","WD","Ml:Ms","Al:As","Leaf Size","k[leaf]","k[stem]","K[s]","P50[stem]","P50[leaf]","Growth")
+#      ,font=1, cex.axis = 1.1, tick=F,las=2, mgp=c(2,.2,0))
+# #dev.off()
+# palette(mypal)
+# if(save.figures==T){
+#   quartz.save(file=paste0(results.dir,"/Fig2_VarainceDecomp_scaled_combined_v1.pdf"),type = "pdf" )
+# }
 
 
 
@@ -1930,32 +1611,6 @@ varcomps <- data.frame(varcomps)
 rownames(varcomps) <- vars
 #varcomps$sig
 
-# 
-# # Showing the Wild/Garden ratio
-# quartz(width=6, height=3)
-# par(mar=c(5,4,1,1))
-# tmp <- varcomps$Wild.50/varcomps$Hop.50
-# statest <- varcomps$Wild.05/varcomps$Hop.50
-# bp <- barplot(varcomps$ratio.50, las=2
-#               , names.arg = c("SLA","LDMC","WD","Ml:Ms","Al:As","Leaf size","k[leaf]","k[stem]", "Ks","P50[stem]","P50[leaf]")
-#               , ylab="Wild Var : Garden Var", ylim=c(0,2.9)
-#               , border = c(rep("white",3), rep("black", 8)), # "white",rep("black",3))
-#               , col = c(rep("lightgray",3), rep("white", 8) )) #"lightgray",rep("white",3))) #with marginal significance
-# #arrows(x0=bp, y0=varcomps$ratio.10, y1=varcomps$ratio.90, lwd=4, length = 0)
-# arrows(x0=bp, y0=varcomps$ratio.05, y1=varcomps$ratio.95, lwd=4, length = 0, col="darkgrey")
-# #arrows(x0=bp, y0=varcomps$ratio.10, y1=varcomps$ratio.90, lwd=4, length = 0, col="darkgray")
-# 
-# 
-# abline(h=1, lty=2, lwd=2)
-# 
-# points(comparison$perc_wild[1:11]~bp, cex=2, pch=16)
-# 
-# text(c("btw Pop\nVar", "total Var"), x=c(1.9, 7.9), y=c(.6, 2.2))
-# arrows(x0=c(2.2,7.9), x1=c(2.95,9), y0=c(0.6,2.08), y1=c(0.22,1.7 ), length=.1)
-# 
-# if(save.figures==T){
-#   quartz.save(file=paste0(results.dir,"/Fig3_WvGvariance_comparison_v2.pdf"),type = "pdf")
-# }
 
 
 ## Showing the % of Wild variance in the Garden
@@ -2032,18 +1687,6 @@ quartz(width=4, height=4)
 #corrplot::corrplot(corAll.named, p.mat=1/pmatAll*.01, sig.level=0.1, insig="pch",pch=16, pch.cex=.8
 #                   , type="lower", diag=T, tl.pos="lt", tl.col="black", cl.pos="r", addgrid.col = NA)#, title="Wild = Upper, Garden = Lower")
 corAll.named <- corAll
-#colnames(corAll.named) <- c("SLA","LDMC","WD","Ml:Ms","Al:As","Leaf size","k[leaf]","k[stem]", "Ks","P50[stem]","P50[leaf]")
-#rownames(corAll.named)  <-c("SLA","LDMC","WD","Ml_Ms","Al:As","Leaf size","k[leaf]","k[stem]", "Ks","P50[stem]","P50[leaf]")
-#colnames(corAll.named) <- c("SLA","LDMC","WD","Leaf size","Ml:Ms","Al:As","k[leaf]","k[stem]", "Ks","P50[stem]","P50[leaf]")
-#rownames(corAll.named)  <-c("SLA","LDMC","WD","Leaf size","Ml_Ms","Al:As","k[leaf]","k[stem]", "Ks","P50[stem]","P50[leaf]")
-# with reordered columns and growth
-# colnames(corAll.named) <- c("Leaf size","Al:As","Ml:Ms","k[leaf]","k[stem]", "Ks","SLA","LDMC","WD", "P50[stem]","P50[leaf]", "30yr Height")
-# rownames(corAll.named) <- c("Leaf size","Al:As","Ml:Ms","k[leaf]","k[stem]", "Ks","SLA","LDMC","WD", "P50[stem]","P50[leaf]", "30yr Height")
-
-## reordered to highlight leaf size and hydraulics
-# colnames(corAll.named) <- c("Leaf size","Al:As","k[leaf]","k[stem]", "Ks","Ml:Ms","SLA","LDMC","WD", "P50[stem]","P50[leaf]", "30yr Height")
-# rownames(corAll.named) <- c("Leaf size","Al:As","k[leaf]","k[stem]", "Ks","Ml:Ms","SLA","LDMC","WD", "P50[stem]","P50[leaf]", "30yr Height")
-## removed growth
 colnames(corAll.named) <- c("Leaf size","Al:As","k[leaf]","k[stem]", "Ks","Ml:Ms","SLA","LDMC","WD", "P50[stem]","P50[leaf]")
 rownames(corAll.named) <- c("Leaf size","Al:As","k[leaf]","k[stem]", "Ks","Ml:Ms","SLA","LDMC","WD", "P50[stem]","P50[leaf]")
 
@@ -2061,21 +1704,6 @@ quartz(width=4, height=4)
 #corrplot::corrplot(corAll.named, p.mat=1/pmatAll*.01, sig.level=0.1, insig="pch",pch=16, pch.cex=.8
 #                   , type="lower", diag=T, tl.pos="lt", tl.col="black", cl.pos="r", addgrid.col = NA)#, title="Wild = Upper, Garden = Lower")
 corW.named <- corW
-# colnames(corW.named) <- c("SLA","LDMC","WD","Ml:Ms","Al:As","Leaf size","k[leaf]","k[stem]", "Ks","P50[stem]","P50[leaf]")
-# rownames(corW.named)  <-c("SLA","LDMC","WD","Ml:Ms","Al:As","Leaf size","k[leaf]","k[stem]", "Ks","P50[stem]","P50[leaf]")
-#colnames(corW.named) <- c("SLA","LDMC","WD","Leaf size","Ml:Ms","Al:As","k[leaf]","k[stem]", "Ks","P50[stem]","P50[leaf]")
-#rownames(corW.named)  <-c("SLA","LDMC","WD","Leaf size","Ml_Ms","Al:As","k[leaf]","k[stem]", "Ks","P50[stem]","P50[leaf]")
-
-# with reordered columns and growth
-# colnames(corW.named) <- c("Leaf size","Al:As","Ml:Ms","k[leaf]","k[stem]", "Ks","SLA","LDMC","WD", "P50[stem]","P50[leaf]", "% max BAI")
-# rownames(corW.named) <- c("Leaf size","Al:As","Ml:Ms","k[leaf]","k[stem]", "Ks","SLA","LDMC","WD", "P50[stem]","P50[leaf]", "% max BAI")
-
-# # move Ml:Ms down with SLA
-# colnames(corW.named) <- c("Leaf size","Al:As","k[leaf]","k[stem]", "Ks","Ml:Ms","SLA","LDMC","WD", "P50[stem]","P50[leaf]", "% max BAI")
-# rownames(corW.named) <- c("Leaf size","Al:As","k[leaf]","k[stem]", "Ks","Ml:Ms","SLA","LDMC","WD", "P50[stem]","P50[leaf]", "% max BAI")
-
-# move Ml:Ms down with SLA
-# removed growth
 colnames(corW.named) <- c("Leaf size","Al:As","k[leaf]","k[stem]", "Ks","Ml:Ms","SLA","LDMC","WD", "P50[stem]","P50[leaf]")
 rownames(corW.named) <- c("Leaf size","Al:As","k[leaf]","k[stem]", "Ks","Ml:Ms","SLA","LDMC","WD", "P50[stem]","P50[leaf]")
 
@@ -2832,67 +2460,3 @@ if(save.figures==T){
   quartz.save(file=paste0(results.dir,"/Fig11_SafetyEfficiencyTradeoff_v1.pdf"), type="pdf")
 }
 
-
-
-
-
-
-
-
-
-
-######### Exploratory code #####################
-#______________________________________________________________________________
-########### ** FIG#: trait-trait correlation exploration ################
-#______________________________________________________________________________
-
-plot(mleafsize~mkstem,all.ind[which(all.ind$site=="W"),], col=pop, pch=1)
-points(W_leafsize~W_kstem, all.pop.wide, pch=16, col=pop, cex=1.2)
-summary(lm(mleafsize~mkstem+ pop, all.ind[which(all.ind$site=="W"),]))
-summary(lmer(mleafsize~mkstem+ (1|pop), all.ind[which(all.ind$site=="W"),]))
-
-plot(mleafsize~mkstem,all.ind[which(all.ind$site=="H"),], col=pop, pch=1)
-points(H_leafsize~H_kstem, all.pop.wide, pch=16, col=pop, cex=1.2)
-summary(lm(mleafsize~mkstem+ pop, all.ind[which(all.ind$site=="H"),]))
-summary(lmer(mleafsize~mkstem+ (1|pop), all.ind[which(all.ind$site=="H"),]))
-
-plot(mkleaf~mkstem,all.ind[which(all.ind$site=="W"),], col=pop, pch=1)
-points(W_kleaf~W_kstem, all.pop.wide, pch=16, col=pop, cex=1.2)
-summary(lm(mkleaf~mkstem+ pop, all.ind[which(all.ind$site=="W"),]))
-summary(lmer(mkleaf~mkstem+ (1|pop), all.ind[which(all.ind$site=="W"),]))
-plot(mkleaf~mkstem,all.ind[which(all.ind$site=="H"),], col=pop, pch=1)
-points(H_kleaf~H_kstem, all.pop.wide, pch=16, col=pop, cex=1.2)
-
-
-plot(mml_ms~mKs,all.ind[which(all.ind$site=="W"),], col=pop, pch=1)
-points(W_ml_ms~W_Ks, all.pop.wide, pch=16, col=pop, cex=1.2)
-summary(lm(mkleaf~mkstem+ pop, all.ind[which(all.ind$site=="W"),]))
-summary(lmer(mkleaf~mkstem+ (1|pop), all.ind[which(all.ind$site=="W"),]))
-plot(mml_ms~mKs,all.ind[which(all.ind$site=="H"),], col=pop, pch=1)
-points(H_ml_ms~H_Ks, all.pop.wide, pch=16, col=pop, cex=1.2)
-
-
-#_________________________________________________________________________________
-################ ** FIG S##: Wild vs Garden Diameter ################################
-#_________________________________________________________________________________
-
-# demonstrates that there's at least some size overlap in the garden vs wild 
-hoptrees.subset <- hoptrees[which(hoptrees$pop %in% unique(all.ind$pop)),]
-
-# in the garden there's a liiitle bit of overlap in size with wild trees.
-#hist(hoptrees.subset$diam_50cm)
-#hist(hoptrees$diam_50cm)
-#hist(wg$DBH_cm, add=T, col="blue")
-
-quartz(width=4.5, height=3.5)
-ggplot(wg, aes(x=DBH_cm, col="Wild"))+geom_density() + geom_density(data=hoptrees.subset, aes(x=diam_50cm, col="Garden")) + theme_classic() + ylim(c(0,.2))
-
-
-
-
-
-
-
-plot(Height~DBH, growthcomparison)
-plot(Diam~DBH, growthcomparison)
-plot(Bio~BAI, growthcomparison)
