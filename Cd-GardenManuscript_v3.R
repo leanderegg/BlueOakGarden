@@ -225,7 +225,7 @@ wg$tmx.2018ds <- popclim$tmx.2018ds[match(wg$Site, popclim$Code)]
 #_________________________________________________________________________
 
 # cleaned kstem and Ks values
-stemk.cl <- read.csv("Data/StemK_cleaned_20230428.csv", row.names=1)
+stemk.cl <- read.csv("Data/StemK_cleaned_20240627.csv", row.names=1)
 # rename Ks
 names(stemk.cl)[which(names(stemk.cl)=="kstem.sa.l")] <- "Ks"
 # cleaned kleaf values
@@ -2436,7 +2436,7 @@ palette(cbp2)
 quartz(width=7, height=3)
 par(mar=c(3.5,4,1.5,1), mfrow=c(1,3), mgp=c(2.5,1,0),cex=1)
 plot(mkstem~P50stem, all.ind, pch=16, col=factor(site)
-     , ylab=expression(paste(k[stem], " (",mmol*cm^-2*s^-1*kPa^-1, ")"))
+     , ylab=expression(paste(k[stem], " (",mmol*m^-2*s^-1*MPa^-1, ")"))
      , xlab=expression(paste(P50[stem]," (MPa)")))
 
 mtext("a) branch conductance", side=3, line=0, adj=0)
@@ -2444,7 +2444,7 @@ mtext("a) branch conductance", side=3, line=0, adj=0)
 
 
 plot(mKs~P50stem, all.ind, pch=16, col=factor(site)
-     , ylab=expression(paste(K[s], " (",mmol*cm*s^-1*kPa^-1, ")"))
+     , ylab=expression(paste(K[s], " (",mmol*m^-1*s^-1*kPa^-1, ")"))
      , xlab=expression(paste(P50[stem]," (MPa)")))
 mtext("b) branch conductivity", side=3, line=0, adj=0)
 
