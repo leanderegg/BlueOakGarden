@@ -70,7 +70,8 @@ error_bars<- function(xvar, yvar, upper, lower=upper, errordata, color="black", 
 save.figures <- T # whether to save figure pdfs
 
 #results.version <- "v240105" # updated for revision
-results.version <- "v240210" # renumbered figures
+#results.version <- "v240210" # renumbered figures
+results.version <- "v240628" # corrected kstem/Ks units
 results.dir <- paste0("Results_",results.version)
 if(save.figures == T) { dir.create(results.dir)}
 
@@ -1325,7 +1326,7 @@ gardengrowth.best <- gamm(height~s(pet.td),random = list(pop=~1), data = tmp)
 test <- predict(gardengrowth.best, newdata = data.frame("pet.td"=seq(from=min(tmp$pet.td),to=max(tmp$pet.td), by=1)),se.fit = T)
 
 # plot predictions ober observations
-plot(diam_50cm~pet.td, hoptrees, pch=16, col="#00000022", ylab="Garden Growth\n(height, m)", xlab="PET transfer distance (mm)")
+plot(height~pet.td, hoptrees, pch=16, col="#00000022", ylab="Garden Growth\n(height, m)", xlab="PET transfer distance (mm)")
 # all individual heights
 points(Height~pet.td, popw, col=factor(pop.name), pch=16, cex=1.2)
 # pop average heights for 7 focal pops
@@ -1334,7 +1335,7 @@ lines(test[[1]]~seq(from=min(tmp$pet.td),to=max(tmp$pet.td), by=1), col=mypal[1]
 abline(v=0, lty=2)
 # location of the common garden
 mtext("b)", side=3, line=0.2, adj=0)
-mtext(paste0("R^2=",round(r.squaredGLMM(gardengrowth)[1],2)), side=3, line=-1.2)
+mtext(paste0("R^2=",round(summary(gardengrowth.best$gam)$r.sq,2)), side=3, line=-1.2)
 
 plot(perc_maxBAI~pet, wg, pch=16, col="#00000022", ylab="Wild Growth\n(% max BAI)", xlab="PET (mm)")
 points(perc_maxBAI~pet, wg.pop, pch=16, col=factor(Site), cex=1.2)
