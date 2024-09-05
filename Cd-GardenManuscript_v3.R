@@ -71,7 +71,8 @@ save.figures <- T # whether to save figure pdfs
 
 #results.version <- "v240105" # updated for revision
 #results.version <- "v240210" # renumbered figures
-results.version <- "v240628" # corrected kstem/Ks units
+#results.version <- "v240628" # corrected kstem/Ks units
+results.version <- "v240821" # updated for resubmission
 results.dir <- paste0("Results_",results.version)
 if(save.figures == T) { dir.create(results.dir)}
 
@@ -138,6 +139,7 @@ hoptrees$tmn.td <- hoptrees$tmn - popclim$tmn1951_1980[which(popclim$Site=="HREC
 hoptrees$tmx.td <- hoptrees$tmx - popclim$tmx1951_1980[which(popclim$Site=="HREC Garden")]
 hoptrees$jjaT.td <- hoptrees$jjaT - popclim$jja1951_1980[which(popclim$Site=="HREC Garden")]
 hoptrees$djfT.td <- hoptrees$djfT - popclim$djf1951_1980[which(popclim$Site=="HREC Garden")]
+
 
 
 hoppop <- hoptrees %>% group_by(pop) %>% summarise(Bio = mean(bioest, na.rm=T), sdBio=sd(bioest,na.rm=T), seBio=se(bioest),
@@ -242,7 +244,7 @@ hub <- read.csv("Data/LeafTraits_cleaned_20230428.csv", row.names = 1)
 #_________________________________________________________________________
 
 # aggregated from above data to the individual (with some name cleaning) and with P50 data from Skelton et al. 2019 New Phyt added
-all.ind <- read.csv("Data/AllIndividuals_H-W_traits_clim_20230505.csv")[,-1]
+all.ind <- read.csv("Data/AllIndividuals_H-W_traits_clim_20240830.csv")
 
 # calculate 2018-Normals climate differentials
 all.ind$aet.diff <- all.ind$aet.2018wy - all.ind$aet
@@ -287,8 +289,8 @@ all.pop0$pet <- popclim$pet1951_1980[match(all.pop0$pop, popclim$Garden_pop)]
 all.pop0$ppt <- popclim$ppt1951_1980[match(all.pop0$pop, popclim$Garden_pop)]
 all.pop0$tmn <- popclim$tmn1951_1980[match(all.pop0$pop, popclim$Garden_pop)]
 all.pop0$tmx <- popclim$tmx1951_1980[match(all.pop0$pop, popclim$Garden_pop)]
-all.pop0$avail_soil_water <- popclim$avail_soil_water[match(all.pop0$pop, popclim$Garden_pop)]
-all.pop0$dieback_10km <- popclim$proportion_10km[match(all.pop0$pop, popclim$Garden_pop)]
+#all.pop0$avail_soil_water <- popclim$avail_soil_water[match(all.pop0$pop, popclim$Garden_pop)]
+#all.pop0$dieback_10km <- popclim$proportion_10km[match(all.pop0$pop, popclim$Garden_pop)]
 ## add in a reverse of cwd for plotting purposes
 all.pop0$cw.surp <- all.pop0$cwd *-1
 
@@ -301,8 +303,8 @@ names(wg.pop)[grep("mperc", names(wg.pop))] <- "perc_maxBAI" # get rid of m adde
 
 
 
-all.pop.m <- melt(all.pop0,id.vars =c(1:4,60:68) ) 
-all.pop.wide <- cast(all.pop.m, pop + pop.name + cwd + aet + pet + ppt + tmn + tmx + avail_soil_water + dieback_10km + cw.surp ~ site + variable, value.var="value")
+all.pop.m <- melt(all.pop0,id.vars =c(1:4,60:66) ) 
+all.pop.wide <- cast(all.pop.m, pop + pop.name + cwd + aet + pet + ppt + tmn + tmx + cw.surp ~ site + variable, value.var="value")
 
 
 
@@ -796,6 +798,8 @@ HopAOV$climsig[which(HopAOV$Trait=="SLA")] <- round(summary(HopmodSLA)$coefficie
 WildAOV$climname[which(WildAOV$Trait=="SLA")] <- WildSLA$table$mod[1] # grab name of best climate variable from AIC table
 WildAOV$climDeltaAIC[which(WildAOV$Trait=="SLA")] <- WildSLA$deltaAIC # grab delta from AIC table
 WildmodSLA <- lmer(mSLA~pet + (1|pop), Wild.ind, REML=T)
+WildmodSLA <- lmer(mSLA~pet*site + (1|pop), all.ind, REML=T)
+
 # plot(WildmodSLA)
 # PET
 WildAOV$bestclim[which(WildAOV$Trait=="SLA")] <- "AET[gy]"
@@ -1545,7 +1549,7 @@ text(y=textlocs.y, x=textlocs.x, legend.names, cex=.6)
 
 par(mar=c(3.5,3.5,2,1), mgp=c(2.5,1,0))
 plot(I(climvar*100)~I(eta2*100), data=WildAOV[which(WildAOV$sig<= 0.05 | WildAOV$climsig<=0.05),], pch=Plotting.Clim.Sig,cex=1,col=factor(WildAOV$Trait)[which(WildAOV$sig<= 0.05 | WildAOV$climsig<=0.05)],
-     xlim=c(0,.7)*100, ylim=c(0,.7)*100,xaxs="i",
+     xlim=c(0,.7)*100, ylim=c(0,.7)*100,xaxs="i",yaxs="i",
      lwd=1.8,
      xlab="Btw-Site or Btw-Pop Variation (%)", ylab="Variation Explained by Climate")
 points(I(climvar*100)~I(eta2*100), data=HopAOV[which(HopAOV$climsig<=0.05),], pch=3,cex=1.3,col=factor(HopAOV$Trait)[which(HopAOV$climsig<=0.05)], lwd=1.8)
@@ -1564,7 +1568,7 @@ with(HopAOV[which(HopAOV$climsig<=0.05),], text(y=climvar*100-2.5, x= eta2*100-5
 
 #legend('topleft', legend=c("Garden","Wild"), pch=c(3,17), bty="n")
 if(save.figures==T){
-  quartz.save(file=paste0(results.dir,"/Fig3_G-vs-GE_variation_v5.pdf"), type="pdf")
+  quartz.save(file=paste0(results.dir,"/Fig3_G-vs-GE_variation_v6.pdf"), type="pdf")
 }
 
 
@@ -1806,11 +1810,11 @@ par(mfcol=c(2,6), mar=c(3,3,1.5,1), mgp=c(2,.8,0))
 #SLA
 # vars <- c("mSLA","mLDMC","mWD","mml_ms","mAl_As","mleafsize","mkleaf", "mkstem", "mKs", "P50stem","P50leaf")
 # for (i in vars){}
-plot(mSLA~get(HopAOV$climname[which(HopAOV$Trait=="SLA")]), Hop.ind, ylab="SLA (cm2g-1)", xlab=HopAOV$bestclim[which(HopAOV$Trait=="SLA")])
+plot(mSLA~get(HopAOV$climname[which(HopAOV$Trait=="SLA")]), Hop.ind, ylab="SLA (cm2g-1)", xlab=HopAOV$bestclim[which(HopAOV$Trait=="SLA")], col=factor(pop.name))
 abline(HopmodSLA, lty=HopAOV$climsig.plotting[which(HopAOV$Trait=="SLA")])
 mtext("a)", adj=0)
 
-plot(mSLA~get(WildAOV$climname[which(WildAOV$Trait=="SLA")]), Wild.ind, ylab="SLA (cm2g-1)", xlab=WildAOV$bestclim[which(WildAOV$Trait=="SLA")])
+plot(mSLA~get(WildAOV$climname[which(WildAOV$Trait=="SLA")]), Wild.ind, ylab="SLA (cm2g-1)", xlab=WildAOV$bestclim[which(WildAOV$Trait=="SLA")], col=factor(pop.name))
 abline(lm(mSLA~aet.2018ds, Wild.ind), lty=WildAOV$climsig.plotting[which(WildAOV$Trait=="SLA")])
 mtext("g)", adj=0)
 
@@ -1828,11 +1832,11 @@ mtext("h)", adj=0)
 
 
 #WD
-plot(mWD~get(HopAOV$climname[which(HopAOV$Trait=="WD")]), Hop.ind, ylab="WD (g cm-2)", xlab=HopAOV$bestclim[which(HopAOV$Trait=="WD")])
+plot(mWD~get(HopAOV$climname[which(HopAOV$Trait=="WD")]), Hop.ind, ylab="WD (g cm-2)", xlab=HopAOV$bestclim[which(HopAOV$Trait=="WD")], col=factor(pop.name))
 abline(HopmodWD, lty=HopAOV$climsig.plotting[which(HopAOV$Trait=="WD")])
 mtext("c)", adj=0)
 
-plot(mWD~get(WildAOV$climname[which(WildAOV$Trait=="WD")]), Wild.ind, ylab="WD (g cm-2)", xlab=WildAOV$bestclim[which(WildAOV$Trait=="WD")])
+plot(mWD~get(WildAOV$climname[which(WildAOV$Trait=="WD")]), Wild.ind, ylab="WD (g cm-2)", xlab=WildAOV$bestclim[which(WildAOV$Trait=="WD")], col=factor(pop.name))
 abline(lm(mWD~aet.diff, Wild.ind), lty=WildAOV$climsig.plotting[which(WildAOV$Trait=="WD")])
 mtext("i)", adj=0)
 
@@ -1843,7 +1847,7 @@ plot(mml_ms~ppt, Hop.ind,ylab="Ml:Ms (g g-1)", xlab="PPT[30yr]", col="grey" )
 #abline(Hopmodml_ms, lty=HopAOV$climsig.plotting[which(HopAOV$Trait=="ml_ms")])
 mtext("d)", adj=0)
 
-plot(mml_ms~get(WildAOV$climname[which(WildAOV$Trait=="ml_ms")]), Wild.ind, ylab="Ml:Ms (g g-1)", xlab=WildAOV$bestclim[which(WildAOV$Trait=="ml_ms")])
+plot(mml_ms~get(WildAOV$climname[which(WildAOV$Trait=="ml_ms")]), Wild.ind, ylab="Ml:Ms (g g-1)", xlab=WildAOV$bestclim[which(WildAOV$Trait=="ml_ms")], col=factor(pop.name))
 abline(Wildmodml_ms, lty=WildAOV$climsig.plotting[which(WildAOV$Trait=="ml_ms")])
 mtext("j)", adj=0)
 
@@ -1854,23 +1858,23 @@ plot(mAl_As~ppt, Hop.ind,ylab="Al:As (cm2 mm-2)", xlab="PPT[30yr]", col="grey" )
 #abline(HopmodAl_As, lty=HopAOV$climsig.plotting[which(HopAOV$Trait=="Al_As")])
 mtext("e)", adj=0)
 
-plot(mAl_As~get(WildAOV$climname[which(WildAOV$Trait=="Al_As")]), Wild.ind, ylab="Al:As (cm2 mm-2)", xlab=WildAOV$bestclim[which(WildAOV$Trait=="Al_As")])
+plot(mAl_As~get(WildAOV$climname[which(WildAOV$Trait=="Al_As")]), Wild.ind, ylab="Al:As (cm2 mm-2)", xlab=WildAOV$bestclim[which(WildAOV$Trait=="Al_As")], col=factor(pop.name))
 abline(lm(mAl_As~get(WildAOV$climname[which(WildAOV$Trait=="Al_As")]), Wild.ind), lty=WildAOV$climsig.plotting[which(WildAOV$Trait=="Al_As")])
 mtext("k)", adj=0)
 
 
 # leafsize
-plot(mleafsize~get(HopAOV$climname[which(HopAOV$Trait=="leafsize")]), Hop.ind, ylab="leafsize (cm2)", xlab=HopAOV$bestclim[which(HopAOV$Trait=="leafsize")])
+plot(mleafsize~get(HopAOV$climname[which(HopAOV$Trait=="leafsize")]), Hop.ind, ylab="leafsize (cm2)", xlab=HopAOV$bestclim[which(HopAOV$Trait=="leafsize")], col=factor(pop.name))
 abline(Hopmodleafsize, lty=HopAOV$climsig.plotting[which(HopAOV$Trait=="leafsize")])
 mtext("f)", adj=0)
 
-plot(mleafsize~get(WildAOV$climname[which(WildAOV$Trait=="leafsize")]), Wild.ind, ylab="leafsize (cm2)", xlab=WildAOV$bestclim[which(WildAOV$Trait=="leafsize")])
+plot(mleafsize~get(WildAOV$climname[which(WildAOV$Trait=="leafsize")]), Wild.ind, ylab="leafsize (cm2)", xlab=WildAOV$bestclim[which(WildAOV$Trait=="leafsize")], col=factor(pop.name))
 abline(lm(mleafsize~aet.2018ds, Wild.ind), lty=WildAOV$climsig.plotting[which(WildAOV$Trait=="leafsize")])
 mtext("l)", adj=0)
 
 
 if(save.figures==T){
-  quartz.save(file=paste0(results.dir,"/FigS3_TraitClim1_v1.pdf"),type = "pdf" )
+  quartz.save(file=paste0(results.dir,"/FigS3_TraitClim1_v2.pdf"),type = "pdf" )
 }
 
 
@@ -1881,21 +1885,21 @@ quartz(width=8, height=4)
 par(mfcol=c(2,6), mar=c(3,3,1.5,1), mgp=c(2,.8,0))
 
 #kleaf
-plot(mkleaf~get(HopAOV$climname[which(HopAOV$Trait=="kleaf")]), Hop.ind, ylab="kleaf", xlab=HopAOV$bestclim[which(HopAOV$Trait=="kleaf")])
+plot(mkleaf~get(HopAOV$climname[which(HopAOV$Trait=="kleaf")]), Hop.ind, ylab="kleaf", xlab=HopAOV$bestclim[which(HopAOV$Trait=="kleaf")], col=factor(pop.name))
 abline(Hopmodkleaf, lty=HopAOV$climsig.plotting[which(HopAOV$Trait=="kleaf")])
 mtext("a)", adj=0)
 
-plot(mkleaf~get(WildAOV$climname[which(WildAOV$Trait=="kleaf")]), Wild.ind, ylab="kleaf", xlab=WildAOV$bestclim[which(WildAOV$Trait=="kleaf")])
+plot(mkleaf~get(WildAOV$climname[which(WildAOV$Trait=="kleaf")]), Wild.ind, ylab="kleaf", xlab=WildAOV$bestclim[which(WildAOV$Trait=="kleaf")], col=factor(pop.name))
 abline(lm(mkleaf~get(WildAOV$climname[which(WildAOV$Trait=="kleaf")]), Wild.ind), lty=WildAOV$climsig.plotting[which(WildAOV$Trait=="kleaf")])
 mtext("g)", adj=0)
 
 
 #kstem
-plot(mkstem~get(HopAOV$climname[which(HopAOV$Trait=="kstem")]), Hop.ind, ylab="kstem", xlab=HopAOV$bestclim[which(HopAOV$Trait=="kstem")])
+plot(mkstem~get(HopAOV$climname[which(HopAOV$Trait=="kstem")]), Hop.ind, ylab="kstem", xlab=HopAOV$bestclim[which(HopAOV$Trait=="kstem")], col=factor(pop.name))
 abline(Hopmodkstem, lty=HopAOV$climsig.plotting[which(HopAOV$Trait=="kstem")])
 mtext("b)", adj=0)
 
-plot(mkstem~get(WildAOV$climname[which(WildAOV$Trait=="kstem")]), Wild.ind, ylab="kstem", xlab=WildAOV$bestclim[which(WildAOV$Trait=="kstem")])
+plot(mkstem~get(WildAOV$climname[which(WildAOV$Trait=="kstem")]), Wild.ind, ylab="kstem", xlab=WildAOV$bestclim[which(WildAOV$Trait=="kstem")], col=factor(pop.name))
 abline(lm(mkstem~get(WildAOV$climname[which(WildAOV$Trait=="kstem")]), Wild.ind), lty=WildAOV$climsig.plotting[which(WildAOV$Trait=="kstem")])
 mtext("h)", adj=0)
 
@@ -1918,7 +1922,7 @@ plot(P50stem~ppt, Hop.ind,ylab="P50stem", xlab="PPT[30yr]", col="grey" )
 #abline(HopmodP50stem, lty=HopAOV$climsig.plotting[which(HopAOV$Trait=="P50stem")])
 mtext("d)", adj=0)
 
-plot(P50stem~get(WildAOV$climname[which(WildAOV$Trait=="P50stem")]), Wild.ind, ylab="P50stem", xlab=WildAOV$bestclim[which(WildAOV$Trait=="P50stem")])
+plot(P50stem~get(WildAOV$climname[which(WildAOV$Trait=="P50stem")]), Wild.ind, ylab="P50stem", xlab=WildAOV$bestclim[which(WildAOV$Trait=="P50stem")], col=factor(pop.name))
 abline(WildmodP50stem, lty=WildAOV$climsig.plotting[which(WildAOV$Trait=="P50stem")])
 mtext("j)", adj=0)
 
@@ -1936,7 +1940,7 @@ mtext("k)", adj=0)
 
 
 # Growth
-plot(log.bio~get(HopAOV$climname[which(HopAOV$Trait=="Growth")]), hoptrees, ylab="Growth (log10(stem biomass))", xlab=HopAOV$bestclim[which(HopAOV$Trait=="Growth")])
+plot(log.bio~get(HopAOV$climname[which(HopAOV$Trait=="Growth")]), hoptrees, ylab="Growth (log10(stem biomass))", xlab=HopAOV$bestclim[which(HopAOV$Trait=="Growth")], col=factor(pop.name))
 abline(lm(log.bio~get(HopAOV$climname[which(HopAOV$Trait=="Growth")]), hoptrees), lty=HopAOV$climsig.plotting[which(HopAOV$Trait=="Growth")])
 mtext("f)", adj=0)
 
@@ -1946,7 +1950,7 @@ mtext("l)", adj=0)
 
 
 if(save.figures==T){
-  quartz.save(file=paste0(results.dir,"/FigS4_TraitClim2_v1.pdf"),type = "pdf" )
+  quartz.save(file=paste0(results.dir,"/FigS4_TraitClim2_v2.pdf"),type = "pdf" )
 }
 
 
@@ -1968,11 +1972,12 @@ all.pop.m$pet.actual[which(all.pop.m$site=="H")] <- popclim$pet1951_1980[which(p
 
 ## Plotting just 'Garden' vs 'Wild' (not true norm of reaction)
 
-quartz(width=6.5, height=6.5)
-par(mfrow=c(3,3), mar=c(3.2,4,0,0), oma=c(0,2,1,1), mgp=c(2,1,0), cex.lab=1.5 )
 traits <- c("SLA","LDMC","WD","ml_ms","Al_As","leafsize","kleaf","kstem","Ks")#,"P50stem")
 labs <- c("SLA","LDMC","WD","Ml:Ms","Al:As","Leaf size","k[leaf]","k[stem]","Ks")#,"P50")
 
+
+quartz(width=6.5, height=6.5)
+par(mfrow=c(3,3), mar=c(3.2,4,0,0), oma=c(0,2,1,1), mgp=c(2,1,0), cex.lab=1.5 )
 
 for (j in 1:length(traits)){
   tr <- traits[j]
@@ -2008,7 +2013,7 @@ if(save.figures==T){
 ## plotting true norm of reaction based on pop PPT
 
 quartz(width=6.5, height=6.5)
-par(mfrow=c(3,3), mar=c(3.2,4,0,0), oma=c(0,2,1,1), mgp=c(2,1,0), cex.lab=1.5 )
+par(mfrow=c(3,3), mar=c(3.2,4,0,0), oma=c(2,2,1,1), mgp=c(2,1,0), cex.lab=1.5 )
 traits <- c("SLA","LDMC","WD","ml_ms","Al_As","leafsize","kleaf","kstem","Ks")#,"P50stem")
 labs <- c("SLA","LDMC","WD","Ml:Ms","Al:As","Leaf size","k[leaf]","k[stem]","Ks")#,"P50")
 
@@ -2130,7 +2135,7 @@ for(i in 1:9){
   abline(a=0,b=1, lwd=2, col="grey")
   #mod <- lm(get(paste0("W_", traits[i]))~get(paste0("H_", traits[i])), tmp, weights=1/sqrt(tmp[,paste0("H_se", traits[i])]))
   points(get(paste0("W_", traits[i]))~get(paste0("H_", traits[i])), popw
-         , xlim=sqlimit, ylim=sqlimit, pch=16, cex=2)
+         , xlim=sqlimit, ylim=sqlimit, pch=16, cex=2, col=factor(pop.name))
   mod <- lmodel2(get(paste0("W_", traits[i]))~get(paste0("H_", traits[i])), tmp)
   if(mod$P.param<0.1){
     abline(a=mod$regression.results$Intercept[3], b=mod$regression.results$Slope[3])
@@ -2141,7 +2146,7 @@ for(i in 1:9){
 }
 
 if(save.figures==T){
-  quartz.save(file=paste0(results.dir,"/FigS6_Garden-v-Wild_TraitValues_v4.pdf"), type="pdf")
+  quartz.save(file=paste0(results.dir,"/FigS6_Garden-v-Wild_TraitValues_v5.pdf"), type="pdf")
 }
 
 
@@ -2317,7 +2322,7 @@ for(i in 1:9){
          y0=tmp$Height, lwd=2, length=0, col="grey")
   arrows(x=tmp[,paste0("H_", traits[i])], x1=tmp[,paste0("H_", traits[i])] - tmp[,paste0("H_se", traits[i])],
          y0=tmp$Height, lwd=2, length=0, col="grey")
-  points(Height~get(paste0("H_", traits[i])), popw, pch=16, cex=2)
+  points(Height~get(paste0("H_", traits[i])), popw, pch=16, cex=2, col=factor(pop.name))
   mod <- lm(Height~get(paste0("H_", traits[i])), tmp, weights=1/sqrt(tmp[,paste0("H_se", traits[i])]))
   if(summary(mod)$coefficients[2,4]<0.1){
     abline(mod, lty = ifelse(summary(mod)$coefficients[2,4]<0.05,1,2))
@@ -2360,7 +2365,7 @@ for(i in 1:9){
          y0=tmp$log.Bio, lwd=2, length=0, col="grey")
   arrows(x=tmp[,paste0("H_", traits[i])], x1=tmp[,paste0("H_", traits[i])] - tmp[,paste0("H_se", traits[i])],
          y0=tmp$log.Bio, lwd=2, length=0, col="grey")
-  points(log.Bio~get(paste0("H_", traits[i])), popw, pch=16, cex=2)
+  points(log.Bio~get(paste0("H_", traits[i])), popw, pch=16, cex=2, col=factor(pop.name))
   mod <- lm(log.Bio~get(paste0("H_", traits[i])), tmp, weights=1/sqrt(tmp[,paste0("H_se", traits[i])]))
   if(summary(mod)$coefficients[2,4]<0.1){
     abline(mod, lty = ifelse(summary(mod)$coefficients[2,4]<0.05,1,2))
@@ -2377,49 +2382,6 @@ if(save.figures==T){
 
 
 ### Wild version
-quartz(width=6.5, height=6.5)
-par(mfrow=c(3,3), mar=c(3.2,2,0,0), oma=c(0,2,1,1), mgp=c(2,1,0), cex.lab=1.5 )
-traits <- c("SLA","LDMC","WD","ml_ms","Al_As","leafsize","kleaf","kstem","Ks","P50stem")
-labs <- c("SLA","LDMC","WD","Ml:Ms","Al:As","Leaf size","k[leaf]","k[stem]","Ks","P50")
-
-#traits <- c("P50leaf","P50stem","kstem","Ks","kleaf","kleaf.sa.temp","Al_As","WD","SLA")
-for(i in 1:9){
-  # subset data down to make it easier to grep colnames
-  tmp <- popw %>% select(grep("perc_maxBAI", colnames(popw)), grep(traits[i], colnames(popw)))
-  # make plots appropriately large for error bars
-  xlimit <- c(min(tmp[,paste0("W_",traits[i])], na.rm=T) - 1.2* max(tmp[,paste0("W_se",traits[i])], na.rm=T), 
-              max(tmp[,paste0("W_",traits[i])], na.rm=T) + 1.2* max(tmp[,paste0("W_se",traits[i])], na.rm=T) )
-  ylimit <- c(min(tmp$perc_maxBAI, na.rm=T, na.rm=T)-1.2*max(tmp$seperc_maxBAI,na.rm=T),
-              max(tmp$perc_maxBAI,na.rm=T, na.rm=T) + 1.2 * max(tmp$seperc_maxBAI, na.rm=T))
-  #  ylimit <- c(min(tmp$perc_maxBAI, na.rm=T), max(tmp$perc_maxBAI, na.rm=T))
-  plot(perc_maxBAI~get(paste0("W_", traits[i])), popw
-       , xlim=xlimit, ylim=ylimit, pch=16, cex=2
-       , xlab=labs[i], ylab="")
-  if(i==4){mtext("% of maximum size-specific BAI",side=2, line=2)}
-  # add in y error bars (perc_maxBAI)
-  arrows(x0=tmp[,paste0("W_", traits[i])], x1=tmp[,paste0("W_", traits[i])],
-         y0=tmp$perc_maxBAI, y1=tmp$perc_maxBAI+tmp$seperc_maxBAI, length =0, lwd=2, col="grey")
-  arrows(x0=tmp[,paste0("W_", traits[i])], x1=tmp[,paste0("W_", traits[i])],
-         y0=tmp$perc_maxBAI, y1=tmp$perc_maxBAI-tmp$seperc_maxBAI, length =0, lwd=2, col="grey")
-  # add in x error bars (trait)
-  arrows(x=tmp[,paste0("W_", traits[i])], x1=tmp[,paste0("W_", traits[i])] + tmp[,paste0("W_se", traits[i])],
-         y0=tmp$perc_maxBAI, lwd=2, length=0, col="grey")
-  arrows(x=tmp[,paste0("W_", traits[i])], x1=tmp[,paste0("W_", traits[i])] - tmp[,paste0("W_se", traits[i])],
-         y0=tmp$perc_maxBAI, lwd=2, length=0, col="grey")
-  points(perc_maxBAI~get(paste0("W_", traits[i])), popw, pch=16, cex=2)
-  mod <- lm(perc_maxBAI~get(paste0("W_", traits[i])), tmp, weights=1/sqrt(tmp[,paste0("W_se", traits[i])]))
-  if(summary(mod)$coefficients[2,4]<0.1){
-    abline(mod)
-    mtext(paste("p=", round(summary(mod)$coefficients[2,4],3)),side = 1, line=-1, adj=.9)
-  }
-  
-}
-
-if(save.figures==T){
-  quartz.save(file=paste0(results.dir,"/FigS10_Trait-Growth_Wild_v1.pdf"),type = "pdf")
-}
-
-
 
 
 
