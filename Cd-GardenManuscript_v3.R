@@ -81,9 +81,7 @@ if(save.figures == T) { dir.create(results.dir)}
 #######   BEGIN: LOAD DATA ###################################################
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-popclim <- read.csv("Data/PopulationClimate_230418.csv")[,-1]
-  
-
+popclim <- read.csv("Data/PopulationClimate_240830.csv")
 
 #______________________________________________________________________
 #######   * Blue Oak herbarium records ###################################################
@@ -113,8 +111,8 @@ qudo$year <- as.numeric(year)
 
 
 ## import hopland tree sizes
-# from pre-harvest survey, (2017?)
-hoptrees <- read.csv("Data/Hop_trees_20180730.csv")
+# from pre-harvest survey, (2017)
+hoptrees <- read.csv("Data/Hop_trees_20240830.csv")
 hoptrees$bioest <- (hoptrees$diam_50cm/2)^2 * pi * hoptrees$height  # currently as a cylinder 
 hoptrees$ind <- factor(hoptrees$sub)
 levels(hoptrees$ind) <- list(a = "1", b="2", c="3")
@@ -125,21 +123,16 @@ hoptrees$pet <- popclim$pet1951_1980[match(hoptrees$pop, popclim$Garden_pop)]
 hoptrees$ppt <- popclim$ppt1951_1980[match(hoptrees$pop, popclim$Garden_pop)]
 hoptrees$tmn <- popclim$tmn1951_1980[match(hoptrees$pop, popclim$Garden_pop)]
 hoptrees$tmx <- popclim$tmx1951_1980[match(hoptrees$pop, popclim$Garden_pop)]
-hoptrees$jjaT <- popclim$jja1951_1980[match(hoptrees$pop, popclim$Garden_pop)]
-hoptrees$djfT <- popclim$djf1951_1980[match(hoptrees$pop, popclim$Garden_pop)]
+
 hoptrees$log.bio <- log(hoptrees$bioest, base=10)
 
 ## calcualte Transfer distance between garden and source locations
 hoptrees$cwd.td <- hoptrees$cwd - popclim$cwd1951_1980[which(popclim$Site=="HREC Garden")]
-#hoptrees$soil_depth <- popinfo2$soil_depth[match(hoptrees$pop, popinfo2$Garden_pop)]
 hoptrees$aet.td <- hoptrees$aet - popclim$aet1951_1980[which(popclim$Site=="HREC Garden")]
 hoptrees$pet.td <- hoptrees$pet - popclim$pet1951_1980[which(popclim$Site=="HREC Garden")]
 hoptrees$ppt.td <- hoptrees$ppt - popclim$ppt1951_1980[which(popclim$Site=="HREC Garden")]
 hoptrees$tmn.td <- hoptrees$tmn - popclim$tmn1951_1980[which(popclim$Site=="HREC Garden")]
 hoptrees$tmx.td <- hoptrees$tmx - popclim$tmx1951_1980[which(popclim$Site=="HREC Garden")]
-hoptrees$jjaT.td <- hoptrees$jjaT - popclim$jja1951_1980[which(popclim$Site=="HREC Garden")]
-hoptrees$djfT.td <- hoptrees$djfT - popclim$djf1951_1980[which(popclim$Site=="HREC Garden")]
-
 
 
 hoppop <- hoptrees %>% group_by(pop) %>% summarise(Bio = mean(bioest, na.rm=T), sdBio=sd(bioest,na.rm=T), seBio=se(bioest),
@@ -215,13 +208,13 @@ wg$pet.2018wy <- popclim$pet.2018wy[match(wg$Site, popclim$Code)]
 wg$ppt.2018wy <- popclim$ppt.2018wy[match(wg$Site, popclim$Code)]
 wg$tmn.2018wy <- popclim$tmn.2018wy[match(wg$Site, popclim$Code)]
 wg$tmx.2018wy <- popclim$tmx.2018wy[match(wg$Site, popclim$Code)]
-# throwing in dormant season values 
-wg$cwd.2018ds <- popclim$cwd.2018ds[match(wg$Site, popclim$Code)]
-wg$aet.2018ds <- popclim$aet.2018ds[match(wg$Site, popclim$Code)]
-wg$pet.2018ds <- popclim$pet.2018ds[match(wg$Site, popclim$Code)]
-wg$ppt.2018ds <- popclim$ppt.2018ds[match(wg$Site, popclim$Code)]
-wg$tmn.2018ds <- popclim$tmn.2018ds[match(wg$Site, popclim$Code)]
-wg$tmx.2018ds <- popclim$tmx.2018ds[match(wg$Site, popclim$Code)]
+# # throwing in dormant season values 
+# wg$cwd.2018ds <- popclim$cwd.2018ds[match(wg$Site, popclim$Code)]
+# wg$aet.2018ds <- popclim$aet.2018ds[match(wg$Site, popclim$Code)]
+# wg$pet.2018ds <- popclim$pet.2018ds[match(wg$Site, popclim$Code)]
+# wg$ppt.2018ds <- popclim$ppt.2018ds[match(wg$Site, popclim$Code)]
+# wg$tmn.2018ds <- popclim$tmn.2018ds[match(wg$Site, popclim$Code)]
+# wg$tmx.2018ds <- popclim$tmx.2018ds[match(wg$Site, popclim$Code)]
 
 #_________________________________________________________________________
 ####### * Load all trait measurements for variance decomp  ##################
