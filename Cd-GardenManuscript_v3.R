@@ -72,7 +72,8 @@ save.figures <- T # whether to save figure pdfs
 #results.version <- "v240105" # updated for revision
 #results.version <- "v240210" # renumbered figures
 #results.version <- "v240628" # corrected kstem/Ks units
-results.version <- "v240821" # updated for resubmission
+#results.version <- "v240821" # updated for resubmission
+results.version <- "v250505" # for NP submission
 results.dir <- paste0("Results_",results.version)
 if(save.figures == T) { dir.create(results.dir)}
 
@@ -82,6 +83,7 @@ if(save.figures == T) { dir.create(results.dir)}
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 popclim <- read.csv("Data/PopulationClimate_240830.csv")
+
 
 #______________________________________________________________________
 #######   * Blue Oak herbarium records ###################################################
@@ -305,6 +307,8 @@ all.pop.wide <- cast(all.pop.m, pop + pop.name + cwd + aet + pet + ppt + tmn + t
 popw0 <- left_join(all.pop.wide, hoppop %>% select(1:15, "pet.td"))
 ### add in wild growth data
 popw <- left_join(popw0, wg.pop, by=c("pop.name"="Site"))
+
+
 
 
 #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -2415,4 +2419,13 @@ legend("topleft",legend = c("Garden","Wild"), col=c(1,2), pch=16, cex=.8, bty='n
 if(save.figures==T){
   quartz.save(file=paste0(results.dir,"/Fig11_SafetyEfficiencyTradeoff_v1.pdf"), type="pdf")
 }
+
+
+
+
+###########################################
+#-------- Height tests ---------------------
+
+
+
 
